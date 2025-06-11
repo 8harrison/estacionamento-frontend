@@ -1,0 +1,419 @@
+/* ===== Variáveis do Módulo ===== */
+:root {
+  /* Cores do sistema - não usar diretamente, usar as variáveis abaixo */
+  --color-blue-500: #3498db;
+  --color-blue-600: #2980b9;
+  --color-blue-700: #1e6091;
+  --color-green-500: #2ecc71;
+  --color-green-600: #27ae60;
+  --color-green-700: #1f8b4c;
+  --color-red-500: #e74c3c;
+  --color-red-600: #c0392b;
+  --color-gray-100: #f8fafc;
+  --color-gray-200: #e2e8f0;
+  --color-gray-700: #334155;
+  --color-gray-800: #1e293b;
+  --color-gray-900: #0f172a;
+  --color-white: #ffffff;
+  
+  /* Variáveis funcionais - usar estas */
+  --color-primary: var(--color-blue-500);
+  --color-primary-hover: var(--color-blue-600);
+  --color-primary-active: var(--color-blue-700);
+  --color-secondary: var(--color-green-500);
+  --color-secondary-hover: var(--color-green-600);
+  --color-secondary-active: var(--color-green-700);
+  --color-danger: var(--color-red-500);
+  --color-danger-hover: var(--color-red-600);
+  --color-text: var(--color-gray-800);
+  --color-text-light: var(--color-gray-700);
+  --color-background: var(--color-white);
+  --color-border: var(--color-gray-200);
+  --color-table-header: var(--color-gray-100);
+  
+  /* Sombras */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  
+  /* Arredondamento */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  
+  /* Espaçamento */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 0.75rem;
+  --spacing-lg: 1rem;
+  --spacing-xl: 1.5rem;
+  --spacing-2xl: 2rem;
+}
+
+/* ===== Container de Ações ===== */
+.actionsContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-2xl);
+  gap: var(--spacing-xl);
+  flex-wrap: wrap;
+}
+
+.searchForm {
+  display: flex;
+  gap: var(--spacing-md);
+  flex: 1;
+  min-width: min(100%, 400px);
+  flex-wrap: wrap;
+}
+
+.searchInput {
+  flex: 1;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  height: 40px;
+  min-width: 200px;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+}
+
+.filterSelect {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  font-size: 0.95rem;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  height: 40px;
+  min-width: 150px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filterSelect:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+}
+
+.searchButton {
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: 0 var(--spacing-xl);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  height: 40px;
+  min-width: 100px;
+}
+
+.searchButton:hover {
+  background-color: var(--color-primary-hover);
+  box-shadow: var(--shadow-sm);
+}
+
+.searchButton:active {
+  background-color: var(--color-primary-active);
+  transform: translateY(1px);
+}
+
+.addButton {
+  background-color: var(--color-secondary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: 0 var(--spacing-xl);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  height: 40px;
+  min-width: 150px;
+  white-space: nowrap;
+}
+
+.addButton:hover {
+  background-color: var(--color-secondary-hover);
+  box-shadow: var(--shadow-sm);
+}
+
+.addButton:active {
+  background-color: var(--color-secondary-active);
+  transform: translateY(1px);
+}
+
+/* ===== Grid de Vagas ===== */
+.vagasGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: var(--spacing-xl);
+  margin-top: var(--spacing-xl);
+}
+
+.vagaCard {
+  background-color: var(--color-background);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-lg);
+  border: 1px solid var(--color-border);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  animation: fadeIn 0.4s ease-out;
+}
+
+.vagaCard:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+.vagaHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.vagaNumero {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.vagaTipoIcon {
+  font-size: 1.5rem;
+}
+
+.vagaSetor {
+  font-size: 1rem;
+  color: var(--color-text-light);
+  margin-bottom: var(--spacing-sm);
+}
+
+.vagaTipo {
+  font-size: 0.9rem;
+  color: var(--color-text-light);
+  margin-bottom: var(--spacing-sm);
+}
+
+.vagaStatus {
+  font-weight: 600;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  text-align: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.statusLivre .vagaStatus {
+  background-color: rgba(46, 204, 113, 0.1);
+  color: var(--color-secondary-hover);
+}
+
+.statusOcupada .vagaStatus {
+  background-color: rgba(231, 76, 60, 0.1);
+  color: var(--color-danger);
+}
+
+.vagaActions {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-sm);
+}
+
+.vagaActionButton {
+  flex: 1;
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vagaActionButton:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.vagaStatusButton {
+  flex: 1;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vagaOcuparButton {
+  background-color: var(--color-danger);
+  color: white;
+}
+
+.vagaOcuparButton:hover {
+  background-color: var(--color-danger-hover);
+}
+
+.vagaLiberarButton {
+  background-color: var(--color-secondary);
+  color: white;
+}
+
+.vagaLiberarButton:hover {
+  background-color: var(--color-secondary-hover);
+}
+
+/* ===== Stats Container ===== */
+.statsContainer {
+  display: flex;
+  gap: var(--spacing-xl);
+  margin-bottom: var(--spacing-2xl);
+  flex-wrap: wrap;
+}
+
+.statCard {
+  background-color: var(--color-background);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-xl);
+  flex: 1;
+  min-width: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+}
+
+.statValue {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: var(--spacing-sm);
+}
+
+.statLabel {
+  font-size: 0.9rem;
+  color: var(--color-text-light);
+  text-align: center;
+}
+
+.statLivre .statValue {
+  color: var(--color-secondary);
+}
+
+.statOcupada .statValue {
+  color: var(--color-danger);
+}
+
+/* ===== Estados de UI ===== */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  color: var(--color-text-light);
+  font-size: 1.1rem;
+  background-color: var(--color-background);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  opacity: 0.8;
+}
+
+.error {
+  background-color: rgba(231, 76, 60, 0.1);
+  color: var(--color-danger);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  margin: var(--spacing-xl) 0;
+  border-left: 4px solid var(--color-danger);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  background-color: var(--color-background);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  color: var(--color-text-light);
+  gap: var(--spacing-lg);
+  padding: var(--spacing-2xl);
+  text-align: center;
+  opacity: 0.8;
+}
+
+.emptyState p {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+/* ===== Responsividade ===== */
+@media (max-width: 768px) {
+  .actionsContainer {
+    flex-direction: column;
+    gap: var(--spacing-lg);
+    align-items: stretch;
+  }
+  
+  .searchForm {
+    min-width: 100%;
+    flex-wrap: wrap;
+  }
+  
+  .searchInput, .filterSelect {
+    flex: 1;
+    min-width: 100%;
+  }
+  
+  .statsContainer {
+    flex-direction: column;
+  }
+  
+  .vagasGrid {
+    grid-template-columns: repeat(auto-fill, minmax(100%, 1fr));
+  }
+}
+
+/* ===== Animações ===== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== Acessibilidade ===== */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
