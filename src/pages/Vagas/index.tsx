@@ -5,9 +5,9 @@ import api from '../../services/api';
 import styles from './Vagas.module.css';
 
 enum TipoVaga {
-  comum = 'comum',
-  prioridade = 'prioridade',
-  docente = 'docente',
+  comum = 'Comum',
+  prioridade = 'Prioritária',
+  docente = 'Docente',
   todos = 'todos'
 }
 
@@ -35,7 +35,6 @@ const Vagas = () => {
   const [filtroTipo, setFiltroTipo] = useState<TipoVaga>(TipoVaga.todos);
   const [filtroSetor, setFiltroSetor] = useState<string>('todos');
   const [setores, setSetores] = useState<string[]>([]);
-  const [vagasFiltradas, setVagasFiltradas] = useState<Vaga[]>([])
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -50,7 +49,7 @@ const Vagas = () => {
       // Extrair setores únicos para o filtro
       const uniqueSetores = Array.from(new Set(response.data.map((vaga: Vaga) => vaga.setor)));
       setSetores(uniqueSetores as string[]);
-      setVagasFiltradas(response.data)
+      
       setError('');
     } catch (err) {
       console.error('Erro ao buscar vagas:', err);
@@ -64,12 +63,6 @@ const Vagas = () => {
     e.preventDefault();
   };
 
-  const handleFilter = (parameter: TipoVaga | StatusVaga) => {
-    StatusVaga[parameter as keyof StatusVaga]
-
-    
-  }
-
   const handleViewDetails = (id: number) => {
     navigate(`/vagas/${id}`);
   };
@@ -78,11 +71,11 @@ const Vagas = () => {
     try {
       console.log(vaga)
       const newStatus = vaga.ocupada ? true : false;
-      await api.put(`/vagas/${vaga.id}/status`, { ocupada: newStatus });
+      await api.put(`/vagas/${vaga.id}`, { ocupada: newStatus });
       
       // Atualizar localmente para feedback imediato
       setVagas(vagas.map(v => 
-        v.id === vaga.id ? { ...v, 'ocupada': newStatus } : v
+        v.id === vaga.id ? { ...v, ocupada: newStatus } : v
       ));
     } catch (err) {
       console.error('Erro ao atualizar status da vaga:', err);
@@ -97,7 +90,14 @@ const Vagas = () => {
       vaga.setor.toLowerCase().includes(searchTerm.toLowerCase());
     
     // Filtro por status
-    const matchesStatus = StatusVaga.todos || StatusVaga.ocupada || StatusVaga.livre
+    let matchesStatus  
+    if(filtroStatus === StatusVaga.ocupada){
+      matchesStatus = vaga.ocupada
+    } else if(filtroStatus === StatusVaga.livre){
+      matchesStatus = !vaga.ocupada
+    } else{
+      return vaga
+    }
     
     // Filtro por tipo
     const matchesTipo = filtroTipo === 'todos' || vaga.tipo === filtroTipo;
@@ -114,17 +114,17 @@ const Vagas = () => {
 
   const getTipoLabel = (tipo: string) => {
     switch (tipo) {
-      case 'comum': return 'Comum';
-      case 'prioridade': return 'Prioridade';
-      case 'docente': return 'Docente';
+      case 'Comum': return 'Comum';
+      case 'Prioritária': return 'Prioridade';
+      case 'Docente': return 'Docente';
       default: return tipo;
     }
   };
 
   const getTipoIcon = (tipo: string) => {
     switch (tipo) {
-      case 'prioridade': return '♿';
-      case 'docente': return '👴';
+      case 'Prioritária': return '♿';
+      case 'Docente': return '👴';
       default: return '🅿️';
     }
   };
@@ -179,7 +179,7 @@ const Vagas = () => {
           
           <select 
             value={filtroStatus} 
-            onChange={(e) => handleFilter(e.target.value as StatusVaga)}
+            onChange={(e) => setFiltroStatus(e.target.value as StatusVaga)}
             className={styles.filterSelect}
           >
             <option value={StatusVaga.todos}>Todos os status</option>
@@ -199,14 +199,14 @@ const Vagas = () => {
           </select>
           
           <button type="submit" className={styles.searchButton}>Filtrar</button>
-        </form>
-        
         <button 
           className={styles.addButton}
           onClick={() => navigate('/vagas/novo')}
         >
           Adicionar Vaga
         </button>
+        </form>
+        
       </div>
 
       {loading ? (
