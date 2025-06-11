@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '../../components/Layout/MainLayout';
-import api from '../../services/api';
 import styles from './Alunos.module.css';
+import { useData } from '../../hooks/useData';
 
 interface Veiculo {
   id: number;
@@ -20,57 +20,40 @@ interface Aluno {
 }
 
 const Alunos = () => {
-  const [alunos, setAlunos] = useState<Aluno[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [filtredAlunos, setFiltredAlunos] = useState<Aluno[]>([])
   const navigate = useNavigate();
-
-  useEffect(() => {
-    fetchAlunos();
-  }, []);
-
-  const fetchAlunos = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get('/alunos');
-      setAlunos(response.data);
-      setError('');
-    } catch (err) {
-      console.error('Erro ao buscar alunos:', err);
-      setError('Não foi possível carregar a lista de alunos. Tente novamente mais tarde.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {alunos, loading, error} = useData()
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchTerm.trim()) {
-      fetchAlunos();
       return;
     }
 
-    const filteredAlunos = alunos.filter(
-      aluno => 
-        aluno.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    setFiltredAlunos(
+      alunos.filter(
+        aluno => 
+          aluno.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
         aluno.matricula.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    
-    setAlunos(filteredAlunos);
+      )
+    ) 
   };
 
   const handleViewDetails = (id: number) => {
     navigate(`/alunos/${id}`);
   };
 
-  const filteredAlunos = searchTerm
-    ? alunos.filter(
+  useEffect(() => {
+    setFiltredAlunos(
+      alunos.filter(
         aluno => 
           aluno.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          aluno.matricula.toLowerCase().includes(searchTerm.toLowerCase())
+        aluno.matricula.toLowerCase().includes(searchTerm.toLowerCase())
       )
-    : alunos;
+    ) 
+  }, [])
+
 
   return (
     <MainLayout title="Gerenciamento de Alunos">
@@ -98,7 +81,7 @@ const Alunos = () => {
         <div className={styles.loading}>Carregando alunos...</div>
       ) : error ? (
         <div className={styles.error}>{error}</div>
-      ) : filteredAlunos.length === 0 ? (
+      ) : filtredAlunos.length === 0 ? (
         <div className={styles.emptyState}>
           <p>Nenhum aluno encontrado.</p>
         </div>
@@ -115,7 +98,7 @@ const Alunos = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredAlunos.map((aluno) => (
+              {filtredAlunos.map((aluno) => (
                 <tr key={aluno.id}>
                   <td>{aluno.nome}</td>
                   <td>{aluno.matricula}</td>

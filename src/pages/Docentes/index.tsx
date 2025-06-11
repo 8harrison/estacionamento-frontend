@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '../../components/Layout/MainLayout';
-import api from '../../services/api';
 import styles from './Docentes.module.css';
+import { useData } from '../../hooks/useData';
 
 interface Veiculo {
   id: number;
@@ -20,50 +20,38 @@ interface Docente {
 }
 
 const Docentes = () => {
-  const [docentes, setDocentes] = useState<Docente[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
+  const [filteredDocentes, setFilteredDocentes] = useState<Docente[]>([])
+  const {docentes, loading, error} = useData()
 
   useEffect(() => {
-    fetchDocentes();
+    setFilteredDocentes(docentes)
   }, []);
 
-  const fetchDocentes = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get('/docentes');
-      setDocentes(response.data);
-      setError('');
-    } catch (err) {
-      console.error('Erro ao buscar docentes:', err);
-      setError('Não foi possível carregar a lista de docentes. Tente novamente mais tarde.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchTerm.trim()) {
-      fetchDocentes();
+      
       return;
     }
-  };
-
-  const handleViewDetails = (id: number) => {
-    navigate(`/docentes/${id}`);
-  };
-
-  const filteredDocentes = searchTerm
+    setFilteredDocentes(searchTerm
     ? docentes.filter(
         docente => 
           docente.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
           docente.matricula.toLowerCase().includes(searchTerm.toLowerCase()) ||
           docente.departamento.toLowerCase().includes(searchTerm.toLowerCase())
       )
-    : docentes;
+    : docentes)
+    
+  };
+
+  const handleViewDetails = (id: number) => {
+    navigate(`/docentes/${id}`);
+  };
+
+   
 
   return (
     <MainLayout title="Gerenciamento de Docentes">
