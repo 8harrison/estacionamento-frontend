@@ -1,57 +1,44 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import MainLayout from '../../components/Layout/MainLayout';
-import styles from './Docentes.module.css';
-import { useData } from '../../hooks/useData';
-
-interface Veiculo {
-  id: number;
-  placa: string;
-  modelo: string;
-  cor: string;
-}
-
-interface Docente {
-  id: number;
-  nome: string;
-  matricula: string;
-  departamento: string;
-  veiculos: Veiculo[];
-}
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import MainLayout from "../../components/Layout/MainLayout";
+import styles from "./Docentes.module.css";
+import { useData } from "../../hooks/useData";
+import type { Docente } from "../../types";
 
 const Docentes = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
-  const [filteredDocentes, setFilteredDocentes] = useState<Docente[]>([])
-  const {docentes, loading, error} = useData()
+  const [filteredDocentes, setFilteredDocentes] = useState<Docente[]>([]);
+  const { docentes, loading, error } = useData();
 
   useEffect(() => {
-    setFilteredDocentes(docentes)
-  }, []);
+    setFilteredDocentes(docentes);
+  }, [loading]);
 
-  
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchTerm.trim()) {
-      
       return;
     }
-    setFilteredDocentes(searchTerm
-    ? docentes.filter(
-        docente => 
-          docente.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          docente.matricula.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          docente.departamento.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : docentes)
-    
+    setFilteredDocentes(
+      searchTerm
+        ? docentes.filter(
+            (docente) =>
+              docente.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              docente.matricula
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase()) ||
+              docente.departamento
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase())
+          )
+        : docentes
+    );
   };
 
-  const handleViewDetails = (id: number) => {
+  const handleViewDetails = (id: string) => {
     navigate(`/docentes/${id}`);
   };
-
-   
 
   return (
     <MainLayout title="Gerenciamento de Docentes">
@@ -64,12 +51,14 @@ const Docentes = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className={styles.searchInput}
           />
-          <button type="submit" className={styles.searchButton}>Buscar</button>
+          <button type="submit" className={styles.searchButton}>
+            Buscar
+          </button>
         </form>
-        
-        <button 
+
+        <button
           className={styles.addButton}
-          onClick={() => navigate('/docentes/novo')}
+          onClick={() => navigate("/docentes/novo")}
         >
           Adicionar Docente
         </button>
@@ -103,7 +92,7 @@ const Docentes = () => {
                   <td>{docente.departamento}</td>
                   <td>{docente.veiculos?.length || 0}</td>
                   <td>
-                    <button 
+                    <button
                       className={styles.actionButton}
                       onClick={() => handleViewDetails(docente.id)}
                     >

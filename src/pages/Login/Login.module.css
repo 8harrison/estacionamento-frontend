@@ -88,6 +88,8 @@
   border-radius: 4px;
   margin-bottom: 1rem;
   text-align: center;
+  font-size: small;
+  overflow-wrap: break-word;
 }
 
 .helpText {

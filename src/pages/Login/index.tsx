@@ -6,13 +6,12 @@ import styles from './Login.module.css';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
-  const { login } = useAuth();
+  const { login, error, setError } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // Obtém o caminho de redirecionamento após o login (se existir)
   const from = location.state?.from?.pathname || '/dashboard';
   

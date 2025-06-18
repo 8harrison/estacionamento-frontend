@@ -19,6 +19,7 @@ import AlunoForm from "./pages/Alunos/AlunoForm";
 import DocenteForm from "./pages/Docentes/DocenteForm";
 import VagaForm from "./pages/Vagas/VagaForm";
 import { DataProvider } from "./contexts/DataContext";
+import RegistroInformacao from "./pages/Estacionamento/RegistroEntradaForm";
 
 function App() {
   return (
@@ -124,10 +125,10 @@ function App() {
             />
 
             <Route
-              path="/estacionamento/*"
+              path="/estacionamento/:id"
               element={
                 <ProtectedRoute>
-                  <Estacionamento />
+                  <RegistroInformacao />
                 </ProtectedRoute>
               }
             />

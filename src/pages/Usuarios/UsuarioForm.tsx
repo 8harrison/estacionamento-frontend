@@ -8,7 +8,7 @@ import styles from './Usuarios.module.css';
 interface FormData {
   nome: string;
   email: string;
-  senha: string;
+  senha?: string;
   confirmarSenha: string;
   role: 'administrador' | 'porteiro';
 }
@@ -93,6 +93,7 @@ const UsuarioForm = () => {
         return false;
       }
       
+      if(formData.senha)
       if (formData.senha.length < 6) {
         setError('A senha deve ter pelo menos 6 caracteres.');
         return false;

@@ -4,6 +4,8 @@ import MainLayout from '../../components/Layout/MainLayout';
 import Modal from '../../components/Modal/Modal';
 import api from '../../services/api';
 import styles from './DocenteForm.module.css';
+import { MeuErro } from '../../customError';
+import { useData } from '../../hooks/useData';
 
 interface FormData {
   nome: string;
@@ -16,7 +18,7 @@ interface FormData {
 const DocenteForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const isEditing = !!id;
+  const isEditing = id !== 'novo';
   
   const [formData, setFormData] = useState<FormData>({
     nome: '',
@@ -30,6 +32,7 @@ const DocenteForm = () => {
   const [error, setError] = useState('');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const {docentes, setDocentes} = useData()
 
   useEffect(() => {
     if (isEditing) {
@@ -38,26 +41,17 @@ const DocenteForm = () => {
   }, [id]);
 
   const fetchDocenteData = async () => {
-    try {
       setLoading(true);
-      const response = await api.get(`/docentes/${id}`);
-      const docente = response.data;
-      
+      const docente = docentes.find(docente => docente.id == id);
       setFormData({
-        nome: docente.nome || '',
-        matricula: docente.matricula || '',
-        departamento: docente.departamento || '',
-        email: docente.email || '',
-        telefone: docente.telefone || ''
+        nome: docente?.nome || '',
+        matricula: docente?.matricula || '',
+        departamento: docente?.departamento || '',
+        email: docente?.email || '',
+        telefone: docente?.telefone || ''
       });
-      
       setError('');
-    } catch (err) {
-      console.error('Erro ao buscar dados do docente:', err);
-      setError('Não foi possível carregar os dados do docente. Tente novamente mais tarde.');
-    } finally {
       setLoading(false);
-    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -99,6 +93,32 @@ const DocenteForm = () => {
     return true;
   };
 
+  const updateDocente = async () => {
+    setDocentes(prev => {
+      return prev.map(docente => {
+        if(docente.id == id){
+          docente = {...docente, ...formData}
+        }
+        return docente
+      })
+    })
+    api.put(`/docentes/${id}`, formData);
+  }
+
+  const createDocente = async () => {
+   const newDocente = await api.post('/docentes', formData);
+   setDocentes(prev => [...prev, newDocente.data])
+  }
+
+  const deleteDocente = async () => {
+    setDocentes(prev => {
+      return prev.filter(docente => {
+        return docente.id != id
+      })
+    })
+    api.delete(`/docentes/${id}`);
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -111,9 +131,9 @@ const DocenteForm = () => {
       setError('');
       
       if (isEditing) {
-        await api.put(`/docentes/${id}`, formData);
+        updateDocente()
       } else {
-        await api.post('/docentes', formData);
+        await createDocente();
       }
       
       setSubmitSuccess(true);
@@ -121,8 +141,8 @@ const DocenteForm = () => {
         navigate('/docentes');
       }, 1500);
       
-    } catch (err: any) {
-      console.error('Erro ao salvar docente:', err);
+    } catch (err: unknown) {
+      if(err instanceof MeuErro)
       if (err.response && err.response.data && err.response.data.message) {
         setError(err.response.data.message);
       } else {
@@ -136,7 +156,7 @@ const DocenteForm = () => {
   const handleDelete = async () => {
     try {
       setLoading(true);
-      await api.delete(`/docentes/${id}`);
+      await deleteDocente();
       setShowConfirmModal(false);
       navigate('/docentes');
     } catch (err) {

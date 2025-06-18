@@ -1,23 +1,27 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import MainLayout from '../../components/Layout/MainLayout';
-import api from '../../services/api';
-import styles from './Usuarios.module.css';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import MainLayout from "../../components/Layout/MainLayout";
+import api from "../../services/api";
+import styles from "./Usuarios.module.css";
+import { useData } from "../../hooks/useData";
+import { AxiosError } from "axios";
 
 interface Usuario {
   id: number;
   nome: string;
   email: string;
-  role: 'administrador' | 'porteiro';
+  role: "administrador" | "porteiro";
 }
 
 const Usuarios = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filtroRole, setFiltroRole] = useState<'todos' | 'administrador' | 'porteiro'>('todos');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filtroRole, setFiltroRole] = useState<
+    "todos" | "administrador" | "porteiro"
+  >("todos");
   const navigate = useNavigate();
+  const { error, setError } = useData();
 
   useEffect(() => {
     fetchUsuarios();
@@ -26,12 +30,20 @@ const Usuarios = () => {
   const fetchUsuarios = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/usuarios');
+      const response = await api.get("/auth/usuarios");
       setUsuarios(response.data);
-      setError('');
+      setError("");
     } catch (err) {
-      console.error('Erro ao buscar usuários:', err);
-      setError('Não foi possível carregar a lista de usuários. Tente novamente mais tarde.');
+      if (err instanceof AxiosError) {
+        if (err.response?.status === 403) {
+          setError("Seu Token expirou, realize um novo login");
+        } else {
+          console.error("Erro ao buscar usuários:", err);
+          setError(
+            "Não foi possível carregar a lista de usuários. Tente novamente mais tarde."
+          );
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -45,20 +57,21 @@ const Usuarios = () => {
     navigate(`/usuarios/${id}`);
   };
 
-  const filteredUsuarios = usuarios.filter(usuario => {
+  const filteredUsuarios = usuarios.filter((usuario) => {
     // Filtro por termo de busca (nome ou email)
-    const matchesSearch = searchTerm === '' || 
+    const matchesSearch =
+      searchTerm === "" ||
       usuario.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       usuario.email.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     // Filtro por role
-    const matchesRole = filtroRole === 'todos' || usuario.role === filtroRole;
-    
+    const matchesRole = filtroRole === "todos" || usuario.role === filtroRole;
+
     return matchesSearch && matchesRole;
   });
 
   const getRoleLabel = (role: string) => {
-    return role === 'administrador' ? 'Administrador' : 'Porteiro';
+    return role === "administrador" ? "Administrador" : "Porteiro";
   };
 
   return (
@@ -72,23 +85,29 @@ const Usuarios = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className={styles.searchInput}
           />
-          
-          <select 
-            value={filtroRole} 
-            onChange={(e) => setFiltroRole(e.target.value as 'todos' | 'administrador' | 'porteiro')}
+
+          <select
+            value={filtroRole}
+            onChange={(e) =>
+              setFiltroRole(
+                e.target.value as "todos" | "administrador" | "porteiro"
+              )
+            }
             className={styles.filterSelect}
           >
             <option value="todos">Todos os perfis</option>
             <option value="administrador">Administradores</option>
             <option value="porteiro">Porteiros</option>
           </select>
-          
-          <button type="submit" className={styles.searchButton}>Filtrar</button>
+
+          <button type="submit" className={styles.searchButton}>
+            Filtrar
+          </button>
         </form>
-        
-        <button 
+
+        <button
           className={styles.addButton}
-          onClick={() => navigate('/usuarios/novo')}
+          onClick={() => navigate("/usuarios/novo")}
         >
           Adicionar Usuário
         </button>
@@ -121,7 +140,7 @@ const Usuarios = () => {
                   <td>{getRoleLabel(usuario.role)}</td>
                   <td>
                     <div className={styles.actionButtonsContainer}>
-                      <button 
+                      <button
                         className={styles.actionButton}
                         onClick={() => handleViewDetails(usuario.id)}
                       >

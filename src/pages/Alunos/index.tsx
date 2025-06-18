@@ -1,29 +1,15 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import MainLayout from '../../components/Layout/MainLayout';
-import styles from './Alunos.module.css';
-import { useData } from '../../hooks/useData';
-
-interface Veiculo {
-  id: number;
-  placa: string;
-  modelo: string;
-  cor: string;
-}
-
-interface Aluno {
-  id: number;
-  nome: string;
-  matricula: string;
-  turno: string;
-  veiculos: Veiculo[];
-}
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import MainLayout from "../../components/Layout/MainLayout";
+import styles from "./Alunos.module.css";
+import { useData } from "../../hooks/useData";
+import type { Aluno } from "../../types";
 
 const Alunos = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filtredAlunos, setFiltredAlunos] = useState<Aluno[]>([])
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filtredAlunos, setFiltredAlunos] = useState<Aluno[]>([]);
   const navigate = useNavigate();
-  const {alunos, loading, error} = useData()
+  const { alunos, loading, error } = useData();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,27 +19,26 @@ const Alunos = () => {
 
     setFiltredAlunos(
       alunos.filter(
-        aluno => 
+        (aluno) =>
           aluno.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        aluno.matricula.toLowerCase().includes(searchTerm.toLowerCase())
+          aluno.matricula.toLowerCase().includes(searchTerm.toLowerCase())
       )
-    ) 
+    );
   };
 
-  const handleViewDetails = (id: number) => {
-    navigate(`/alunos/${id}`);
+  const handleViewDetails = (id: string) => {
+    navigate(`/alunos/${id}`, { state: "message" });
   };
 
   useEffect(() => {
     setFiltredAlunos(
       alunos.filter(
-        aluno => 
+        (aluno) =>
           aluno.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        aluno.matricula.toLowerCase().includes(searchTerm.toLowerCase())
+          aluno.matricula.toLowerCase().includes(searchTerm.toLowerCase())
       )
-    ) 
-  }, [])
-
+    );
+  }, [alunos]);
 
   return (
     <MainLayout title="Gerenciamento de Alunos">
@@ -66,12 +51,14 @@ const Alunos = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className={styles.searchInput}
           />
-          <button type="submit" className={styles.searchButton}>Buscar</button>
+          <button type="submit" className={styles.searchButton}>
+            Buscar
+          </button>
         </form>
-        
-        <button 
+
+        <button
           className={styles.addButton}
-          onClick={() => navigate('/alunos/novo')}
+          onClick={() => navigate("/alunos/novo")}
         >
           Adicionar Aluno
         </button>
@@ -105,7 +92,7 @@ const Alunos = () => {
                   <td>{aluno.turno}</td>
                   <td>{aluno.veiculos?.length || 0}</td>
                   <td>
-                    <button 
+                    <button
                       className={styles.actionButton}
                       onClick={() => handleViewDetails(aluno.id)}
                     >

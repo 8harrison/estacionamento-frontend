@@ -2,9 +2,8 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import MainLayout from "../../components/Layout/MainLayout";
 import styles from "./Dashboard.module.css";
-import { type Vaga } from "../../contexts/DataContext";
 import { useData } from "../../hooks/useData";
-
+import type { Vaga } from "../../types";
 interface DashboardStats {
   totalAlunos: number;
   totalDocentes: number;
@@ -27,35 +26,33 @@ const Dashboard = () => {
   const { loading, error, alunos, docentes, veiculos, vagas } = useData();
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const totalAlunos = alunos.length;
-
-        const totalDocentes = docentes.length;
-
-        const totalVeiculos = veiculos.length;
-
-        const totalVagas = vagas.length;
-        const vagasOcupadas = vagas.filter(
-          (vaga: Vaga) => !vaga.ocupada
-        ).length;
-        const vagasDisponiveis = totalVagas - vagasOcupadas;
-
-        setStats({
-          totalAlunos,
-          totalDocentes,
-          totalVeiculos,
-          vagasOcupadas,
-          vagasDisponiveis,
-          totalVagas,
-        });
-      } catch (err) {
-        console.error("Erro ao buscar estatísticas:", err);
-      }
-    };
-
     fetchStats();
   }, [loading]);
+
+  const fetchStats = async () => {
+    try {
+      const totalAlunos = alunos.length;
+
+      const totalDocentes = docentes.length;
+
+      const totalVeiculos = veiculos.length;
+
+      const totalVagas = vagas.length;
+      const vagasOcupadas = vagas.filter((vaga: Vaga) => vaga.ocupada).length;
+      const vagasDisponiveis = totalVagas - vagasOcupadas;
+
+      setStats({
+        totalAlunos,
+        totalDocentes,
+        totalVeiculos,
+        vagasOcupadas,
+        vagasDisponiveis,
+        totalVagas,
+      });
+    } catch (err) {
+      console.error("Erro ao buscar estatísticas:", err);
+    }
+  };
 
   return (
     <MainLayout title="Dashboard">

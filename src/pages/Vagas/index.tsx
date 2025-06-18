@@ -1,84 +1,68 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import MainLayout from "../../components/Layout/MainLayout";
 import api from "../../services/api";
 import styles from "./Vagas.module.css";
 import { useData } from "../../hooks/useData";
-
-enum TipoVaga {
-  comum = "Comum",
-  prioridade = "Prioritária",
-  docente = "Docente",
-  todos = "todos",
-}
-
-enum StatusVaga {
-  todos = "todos",
-  livre = "livre",
-  ocupada = "ocupada",
-}
-
-interface Vaga {
-  id: number;
-  numero: string;
-  setor: string;
-  tipo: TipoVaga;
-  ocupada: boolean;
-}
+import { StatusVaga, type Vaga, TipoVaga, type Veiculo } from "../../types";
+import Modal from "../../components/Modal/Modal";
+import OcuparVagaModalContent from "../../components/Modal/OcuparVagaModalContent";
 
 const Vagas = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filtroStatus, setFiltroStatus] = useState<StatusVaga>(
-    StatusVaga.todos
-  );
-  const [filteredVagas, setFilteredVagas] = useState<Vaga[]>([]);
-  const [filtroTipo, setFiltroTipo] = useState<TipoVaga>(TipoVaga.todos);
+  const [filtroStatus, setFiltroStatus] = useState<StatusVaga>("todos");
+  const [filtroTipo, setFiltroTipo] = useState<TipoVaga>("todos");
   const [filtroSetor, setFiltroSetor] = useState<string>("todos");
   const [setores, setSetores] = useState<string[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [park, setPark] = useState<string | null>();
   const navigate = useNavigate();
 
-  const { vagas, loading, error } = useData();
-
-  useEffect(() => {
-    fetchVagas();
-    handleFilter()
-  }, [loading]);
-
-  const fetchVagas = async () => {
-    // Extrair setores únicos para o filtro
-    const uniqueSetores = Array.from(
-      new Set(vagas.map((vaga: Vaga) => vaga.setor))
-    );
-    setSetores(uniqueSetores as string[]);
-    setFilteredVagas(vagas);
-  };
+  const { vagas, loading, error, setVagas, registros } = useData();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
   };
 
-  const handleViewDetails = (id: number) => {
+  const handleViewDetails = (id: string) => {
     navigate(`/vagas/${id}`);
   };
 
   const handleQuickStatusChange = async (vaga: Vaga) => {
-    const newStatus = vaga.ocupada ? true : false;
-    await api.put(`/vagas/${vaga.id}`, { ocupada: newStatus });
-
-    // Atualizar localmente para feedback imediato
-    setFilteredVagas(
-      vagas.map((v) => (v.id === vaga.id ? { ...v, ocupada: newStatus } : v))
-    );
+    const { ocupada } = vaga;
+    if (!ocupada) {
+      setShowModal(true);
+      setPark(vaga.id);
+    } else {
+      await handleRetirar(vaga);
+    }
   };
 
-  const handleFilter = () => {
-    const filteredVagas = vagas.filter((vaga) => {
+  const handleRetirar = async (vaga: Vaga) => {
+    const registroAtivo = registros.find(
+      (registro) => !registro["data_saida"] && registro.vagaId === vaga.id
+    );
+    setVagas((prev) => {
+      return prev.map((v) => {
+        if (v.id == vaga.id) {
+          v.ocupada = false;
+        }
+        return v;
+      });
+    });
+    await api.patch("/estacionamentos/saida/" + registroAtivo?.id, {
+      valorPago: 0
+    });
+  };
+
+  const vagasMemo = useMemo(() => {
+    setSetores([]);
+    return vagas.filter((vaga) => {
       // Filtro por termo de busca (número ou setor)
       const matchesSearch =
         searchTerm === "" ||
         vaga.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
         vaga.setor.toLowerCase().includes(searchTerm.toLowerCase());
-
       // Filtro por status
       let matchesStatus;
       if (filtroStatus === StatusVaga.ocupada) {
@@ -86,7 +70,7 @@ const Vagas = () => {
       } else if (filtroStatus === StatusVaga.livre) {
         matchesStatus = !vaga.ocupada;
       } else {
-        return vaga;
+        matchesStatus = true;
       }
       // Filtro por tipo
       const matchesTipo = filtroTipo === "todos" || vaga.tipo === filtroTipo;
@@ -97,12 +81,26 @@ const Vagas = () => {
 
       return matchesSearch && matchesStatus && matchesTipo && matchesSetor;
     });
-
-    setFilteredVagas(filteredVagas)
-  };  
+  }, [loading, filtroSetor, filtroStatus, filtroTipo, searchTerm]);
 
   const getStatusClass = (status: boolean) => {
     return !status ? styles.statusLivre : styles.statusOcupada;
+  };
+
+  const handleEstacionar = async (veiculo: Veiculo) => {
+    setVagas((prev) => {
+      return prev.map((vaga) => {
+        if (vaga.id == park) {
+          vaga.ocupada = true;
+        }
+        return vaga;
+      });
+    });
+    setShowModal(false);
+    await api.post("/estacionamentos/entrada", {
+      veiculoId: veiculo.id,
+      vagaId: park,
+    });
   };
 
   const getTipoLabel = (tipo: string) => {
@@ -216,13 +214,13 @@ const Vagas = () => {
         <div className={styles.loading}>Carregando vagas...</div>
       ) : error ? (
         <div className={styles.error}>{error}</div>
-      ) : filteredVagas.length === 0 ? (
+      ) : vagasMemo.length === 0 ? (
         <div className={styles.emptyState}>
           <p>Nenhuma vaga encontrada.</p>
         </div>
       ) : (
         <div className={styles.vagasGrid}>
-          {filteredVagas.map((vaga) => (
+          {vagasMemo.map((vaga) => (
             <div
               key={vaga.id}
               className={`${styles.vagaCard} ${getStatusClass(vaga.ocupada)}`}
@@ -258,6 +256,15 @@ const Vagas = () => {
               </div>
             </div>
           ))}
+          <Modal
+            isOpen={showModal}
+            onClose={() => setShowModal(false)}
+            title="Confirmar estacionamento"
+          >
+            <OcuparVagaModalContent
+              onConfirm={(veiculoId) => handleEstacionar(veiculoId)}
+            />
+          </Modal>
         </div>
       )}
     </MainLayout>

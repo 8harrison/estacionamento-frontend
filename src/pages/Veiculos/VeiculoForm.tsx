@@ -1,135 +1,149 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import MainLayout from '../../components/Layout/MainLayout';
-import Modal from '../../components/Modal/Modal';
-import api from '../../services/api';
-import styles from './VeiculoForm.module.css';
-
-interface Proprietario {
-  id: number;
-  nome: string;
-  tipo: 'aluno' | 'docente';
-}
-
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import MainLayout from "../../components/Layout/MainLayout";
+import Modal from "../../components/Modal/Modal";
+import api from "../../services/api";
+import styles from "./VeiculoForm.module.css";
+import type { Aluno, Docente, Veiculo } from "../../types";
+import { useData } from "../../hooks/useData";
+import { MeuErro } from "../../customError";
 interface FormData {
   placa: string;
   modelo: string;
   cor: string;
-  proprietarioId: number;
-  proprietarioTipo: 'aluno' | 'docente';
+  proprietarioTipo: "aluno" | "docente";
+  alunoId?: string;
+  docenteId?: string;
 }
 
 const VeiculoForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const isEditing = !!id;
-  
+  const isEditing = id !== "novo";
+
   const [formData, setFormData] = useState<FormData>({
-    placa: '',
-    modelo: '',
-    cor: '',
-    proprietarioId: 0,
-    proprietarioTipo: 'aluno'
+    placa: "",
+    modelo: "",
+    cor: "",
+    proprietarioTipo: "aluno",
   });
-  
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+
+  const [error, setError] = useState("");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  
-  const [alunos, setAlunos] = useState<Proprietario[]>([]);
-  const [docentes, setDocentes] = useState<Proprietario[]>([]);
-  const [loadingProprietarios, setLoadingProprietarios] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const [loading, setLoading] = useState(false);
+
+  const { alunos, docentes, setVeiculos, veiculos, alunosCallback, docentesCallback } = useData();
 
   useEffect(() => {
-    fetchProprietarios();
-    
     if (isEditing) {
       fetchVeiculoData();
     }
   }, [id]);
 
-  const fetchProprietarios = async () => {
-    try {
-      setLoadingProprietarios(true);
-      
-      const [alunosResponse, docentesResponse] = await Promise.all([
-        api.get('/alunos'),
-        api.get('/docentes')
-      ]);
-      
-      setAlunos(alunosResponse.data);
-      setDocentes(docentesResponse.data);
-    } catch (err) {
-      console.error('Erro ao buscar proprietários:', err);
-      setError('Não foi possível carregar a lista de proprietários. Tente novamente mais tarde.');
-    } finally {
-      setLoadingProprietarios(false);
+  const propritarioMemo = useMemo<Aluno[] | Docente[]>(() => {
+    if (formData.proprietarioTipo === "aluno") {
+      return alunos.filter((aluno) => {
+        return (
+          searchTerm === "" ||
+          aluno.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          aluno.matricula.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      });
+    } else {
+      return docentes.filter((docente) => {
+        return (
+          searchTerm === "" ||
+          docente.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          docente.matricula.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      });
     }
-  };
+  }, [formData.proprietarioTipo, searchTerm, alunos, docentes]);
 
   const fetchVeiculoData = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get(`/veiculos/${id}`);
-      const veiculo = response.data;
-      console.log(veiculo)
-      setFormData({
-        placa: veiculo.placa || '',
-        modelo: veiculo.modelo || '',
-        cor: veiculo.cor || '',
-        proprietarioId: veiculo.proprietario?.id || 0,
-        proprietarioTipo: veiculo.proprietario?.tipo || 'aluno'
-      });
-      
-      setError('');
-    } catch (err) {
-      console.error('Erro ao buscar dados do veículo:', err);
-      setError('Não foi possível carregar os dados do veículo. Tente novamente mais tarde.');
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    const veiculo = veiculos.find((veiculo) => veiculo.id == id);
+    setFormData({
+      placa: veiculo?.placa || "",
+      modelo: veiculo?.modelo || "",
+      cor: veiculo?.cor || "",
+      proprietarioTipo: veiculo?.aluno ? "aluno" : "docente",
+    });
+
+    setError("");
+    setLoading(false);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
-  const handleProprietarioTipoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const tipo = e.target.value as 'aluno' | 'docente';
-    setFormData(prev => ({
+  const handleProprietarioTipoChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const tipo = e.target.value as "aluno" | "docente";
+    setFormData((prev) => ({
       ...prev,
       proprietarioTipo: tipo,
-      proprietarioId: 0 // Resetar o ID quando mudar o tipo
+      proprietarioId: 0, // Resetar o ID quando mudar o tipo
     }));
+    setSearchTerm("");
   };
 
   const validateForm = () => {
     if (!formData.placa.trim()) {
-      setError('A placa é obrigatória.');
+      setError("A placa é obrigatória.");
       return false;
     }
-    
+
     if (!formData.modelo.trim()) {
-      setError('O modelo é obrigatório.');
+      setError("O modelo é obrigatório.");
       return false;
     }
-    
+
     if (!formData.cor.trim()) {
-      setError('A cor é obrigatória.');
+      setError("A cor é obrigatória.");
       return false;
     }
-    
-    if (formData.proprietarioId === 0) {
-      setError('É necessário selecionar um proprietário.');
-      return false;
-    }
-    
+
+    console.log(formData);
+
     return true;
+  };
+
+  const updateVeiculo = async (payload: Partial<Veiculo>) => {
+    setVeiculos((prev) => {
+      return prev.map((veiculo) => {
+        if (veiculo.id == id) {
+          veiculo = { ...veiculo, ...payload };
+        }
+        return veiculo;
+      });
+    });
+    api.put(`/veiculos/${id}`, payload);
+  };
+
+  const createVeiculo = async (payload: Partial<Veiculo>) => {
+    const newVeiculo = await api.post("/veiculos", payload);
+    setVeiculos((prev) => [...prev, newVeiculo.data]);
+    alunosCallback()
+    docentesCallback()
+  };
+
+  const deleteVeiculo = async () => {
+    setVeiculos((prev) => {
+      return prev.filter((veiculo) => veiculo.id !== id);
+    });
+    await api.delete(`/veiculos/${id}`);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -138,37 +152,32 @@ const VeiculoForm = () => {
     if (!validateForm()) {
       return;
     }
-    
+
     try {
       setLoading(true);
-      setError('');
-      
-      const payload = {
-        placa: formData.placa,
-        modelo: formData.modelo,
-        cor: formData.cor,
-        proprietarioId: formData.proprietarioId,
-        proprietarioTipo: formData.proprietarioTipo
-      };
-      
+      setError("");
+
+      const payload = {...formData};   
+
       if (isEditing) {
-        await api.put(`/veiculos/${id}`, payload);
+        await updateVeiculo(payload);
       } else {
-        await api.post('/veiculos', payload);
+        await createVeiculo(payload);
       }
-      
+
       setSubmitSuccess(true);
       setTimeout(() => {
-        navigate('/veiculos');
+        navigate("/veiculos");
       }, 1500);
-      
-    } catch (err: any) {
-      console.error('Erro ao salvar veículo:', err);
-      if (err.response && err.response.data && err.response.data.message) {
-        setError(err.response.data.message);
-      } else {
-        setError('Ocorreu um erro ao salvar os dados. Tente novamente mais tarde.');
-      }
+    } catch (err: unknown) {
+      if (err instanceof MeuErro)
+        if (err.response && err.response.data && err.response.data.message) {
+          setError(err.response.data.message);
+        } else {
+          setError(
+            "Ocorreu um erro ao salvar os dados. Tente novamente mais tarde."
+          );
+        }
     } finally {
       setLoading(false);
     }
@@ -177,40 +186,54 @@ const VeiculoForm = () => {
   const handleDelete = async () => {
     try {
       setLoading(true);
-      await api.delete(`/veiculos/${id}`);
+      await deleteVeiculo();
       setShowConfirmModal(false);
-      navigate('/veiculos');
+      navigate("/veiculos");
     } catch (err) {
-      console.error('Erro ao excluir veículo:', err);
-      setError('Não foi possível excluir o veículo. Tente novamente mais tarde.');
+      console.error("Erro ao excluir veículo:", err);
+      setError(
+        "Não foi possível excluir o veículo. Tente novamente mais tarde."
+      );
       setShowConfirmModal(false);
     } finally {
       setLoading(false);
     }
   };
 
-  if ((loading && isEditing) || loadingProprietarios) {
+  const handleSelecionar = (propri: Aluno | Docente) => {
+    if (formData.proprietarioTipo === "aluno") {
+      setFormData((prev) => ({ ...prev, alunoId: propri.id }));
+    } else {
+      setFormData((prev) => ({ ...prev, docenteId: propri.id }));
+    }
+    setSearchTerm(`${propri.nome} - Matrícula: ${propri.matricula}`);
+  };
+
+  if (loading && isEditing) {
     return (
-      <MainLayout title={isEditing ? 'Editar Veículo' : 'Novo Veículo'}>
+      <MainLayout title={isEditing ? "Editar Veículo" : "Novo Veículo"}>
         <div className={styles.loading}>Carregando dados...</div>
       </MainLayout>
     );
   }
 
   return (
-    <MainLayout title={isEditing ? 'Editar Veículo' : 'Novo Veículo'}>
+    <MainLayout title={isEditing ? "Editar Veículo" : "Novo Veículo"}>
       {submitSuccess ? (
         <div className={styles.successMessage}>
-          Veículo {isEditing ? 'atualizado' : 'cadastrado'} com sucesso! Redirecionando...
+          Veículo {isEditing ? "atualizado" : "cadastrado"} com sucesso!
+          Redirecionando...
         </div>
       ) : (
         <>
           {error && <div className={styles.error}>{error}</div>}
-          
+
           <div className={styles.formContainer}>
             <form onSubmit={handleSubmit} className={styles.form}>
               <div className={styles.formGroup}>
-                <label htmlFor="placa" className={styles.label}>Placa</label>
+                <label htmlFor="placa" className={styles.label}>
+                  Placa
+                </label>
                 <input
                   type="text"
                   id="placa"
@@ -222,9 +245,11 @@ const VeiculoForm = () => {
                   disabled={loading}
                 />
               </div>
-              
+
               <div className={styles.formGroup}>
-                <label htmlFor="modelo" className={styles.label}>Modelo</label>
+                <label htmlFor="modelo" className={styles.label}>
+                  Modelo
+                </label>
                 <input
                   type="text"
                   id="modelo"
@@ -236,9 +261,11 @@ const VeiculoForm = () => {
                   disabled={loading}
                 />
               </div>
-              
+
               <div className={styles.formGroup}>
-                <label htmlFor="cor" className={styles.label}>Cor</label>
+                <label htmlFor="cor" className={styles.label}>
+                  Cor
+                </label>
                 <input
                   type="text"
                   id="cor"
@@ -250,9 +277,11 @@ const VeiculoForm = () => {
                   disabled={loading}
                 />
               </div>
-              
+
               <div className={styles.formGroup}>
-                <label htmlFor="proprietarioTipo" className={styles.label}>Tipo de Proprietário</label>
+                <label htmlFor="proprietarioTipo" className={styles.label}>
+                  Tipo de Proprietário
+                </label>
                 <select
                   id="proprietarioTipo"
                   name="proprietarioTipo"
@@ -265,45 +294,43 @@ const VeiculoForm = () => {
                   <option value="docente">Docente</option>
                 </select>
               </div>
-              
+
               <div className={styles.formGroup}>
-                <label htmlFor="proprietarioId" className={styles.label}>Proprietário</label>
-                <select
-                  id="proprietarioId"
-                  name="proprietarioId"
-                  value={formData.proprietarioId}
-                  onChange={handleChange}
+                <label htmlFor="proprietarioId" className={styles.label}>
+                  Proprietário
+                </label>
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className={styles.select}
-                  disabled={loading}
-                >
-                  <option value={0}>Selecione um proprietário</option>
-                  
-                  {formData.proprietarioTipo === 'aluno' ? (
-                    alunos.map(aluno => (
-                      <option key={aluno.id} value={aluno.id}>
-                        {aluno.nome} - Matrícula: {aluno.matricula}
-                      </option>
-                    ))
-                  ) : (
-                    docentes.map(docente => (
-                      <option key={docente.id} value={docente.id}>
-                        {docente.nome} - Departamento: {docente.departamento}
-                      </option>
-                    ))
-                  )}
-                </select>
+                />
+                {searchTerm && propritarioMemo.length > 0 && (
+                  <ul className={styles.autocompleteSuggestions}>
+                    {propritarioMemo.map((propri) => (
+                      <li
+                        key={propri.id}
+                        value={propri.id}
+                        className={styles.autocompleteItem}
+                        onClick={() => handleSelecionar(propri)}
+                      >
+                        {propri.nome} - Matrícula: {propri.matricula}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
-              
+
               <div className={styles.formActions}>
                 <button
                   type="button"
-                  onClick={() => navigate('/veiculos')}
+                  onClick={() => navigate("/veiculos")}
                   className={styles.cancelButton}
                   disabled={loading}
                 >
                   Cancelar
                 </button>
-                
+
                 {isEditing && (
                   <button
                     type="button"
@@ -314,18 +341,22 @@ const VeiculoForm = () => {
                     Excluir
                   </button>
                 )}
-                
+
                 <button
                   type="submit"
                   className={styles.submitButton}
                   disabled={loading}
                 >
-                  {loading ? 'Salvando...' : isEditing ? 'Atualizar' : 'Cadastrar'}
+                  {loading
+                    ? "Salvando..."
+                    : isEditing
+                    ? "Atualizar"
+                    : "Cadastrar"}
                 </button>
               </div>
             </form>
           </div>
-          
+
           <Modal
             isOpen={showConfirmModal}
             onClose={() => setShowConfirmModal(false)}
@@ -344,12 +375,15 @@ const VeiculoForm = () => {
                   className={styles.deleteButton}
                   disabled={loading}
                 >
-                  {loading ? 'Excluindo...' : 'Confirmar Exclusão'}
+                  {loading ? "Excluindo..." : "Confirmar Exclusão"}
                 </button>
               </>
             }
           >
-            <p>Tem certeza que deseja excluir este veículo? Esta ação não pode ser desfeita.</p>
+            <p>
+              Tem certeza que deseja excluir este veículo? Esta ação não pode
+              ser desfeita.
+            </p>
           </Modal>
         </>
       )}
