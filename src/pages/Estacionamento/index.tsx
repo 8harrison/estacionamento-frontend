@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import MainLayout from "../../components/Layout/MainLayout";
 import styles from "./Estacionamento.module.css";
@@ -13,10 +13,6 @@ const Estacionamento = () => {
   const navigate = useNavigate();
   const { registros, error, loading } = useData();
 
-  useEffect(() => {
-   
-  }, [loading]);
-  
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
   };
@@ -54,7 +50,7 @@ const Estacionamento = () => {
 
       return matchesSearch && matchesStatus;
     });
-  }, [filtroStatus, searchTerm, loading]);
+  }, [filtroStatus, searchTerm, loading, registros]);
 
   return (
     <MainLayout title="Gerenciamento de Estacionamento">

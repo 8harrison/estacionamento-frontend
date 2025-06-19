@@ -1,12 +1,14 @@
 import axios from 'axios';
 
-const apiReal = 'https://projeto-estacionamento-senai.onrender.com/api'
+// export const apiReal = 'https://projeto-estacionamento-senai.onrender.com'
 
-const apiLocal = 'http://localhost:3000/api'
+export const apiLocal = 'http://localhost:3000'
+
+export const apiUtilizada = import.meta.env.VITE_API_URL || apiLocal
 
 // Criando uma instância do axios com a URL base da API
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || apiLocal,
+  baseURL: apiUtilizada + '/api',
 });
 
 // Interceptor para adicionar o token de autenticação em todas as requisições

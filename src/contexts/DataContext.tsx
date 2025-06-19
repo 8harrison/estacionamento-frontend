@@ -7,13 +7,13 @@ import {
   type SetStateAction,
   useCallback,
 } from "react";
-import api from "../services/api";
+import api, { apiUtilizada } from "../services/api";
 import { useAuth } from "../hooks/useAuth";
 import type { Registro, Aluno, Docente, Vaga, Veiculo } from "../types";
 import { AxiosError } from "axios";
 import { io } from "socket.io-client";
 
-const socket = io('http://localhost:3000')
+const socket = io(apiUtilizada);
 interface DataContextType {
   docentes: Docente[];
   setDocentes: Dispatch<SetStateAction<Docente[]>>;
@@ -21,13 +21,15 @@ interface DataContextType {
   setAlunos: Dispatch<SetStateAction<Aluno[]>>;
   loading: boolean;
   error: string;
-  setError: Dispatch<SetStateAction<string>>
+  setError: Dispatch<SetStateAction<string>>;
   veiculos: Veiculo[];
   setVeiculos: Dispatch<SetStateAction<Veiculo[]>>;
   vagas: Vaga[];
   setVagas: Dispatch<SetStateAction<Vaga[]>>;
   registros: Registro[];
   setRegistros: Dispatch<SetStateAction<Registro[]>>;
+  placaListenner: Veiculo | null;
+  setPlacaListenner: Dispatch<SetStateAction<Veiculo | null>>;
   alunosCallback: () => void;
   docentesCallback: () => void;
 }
@@ -50,6 +52,7 @@ export const DataProvider = ({ children }: AuthProviderProps) => {
   const [veiculos, setVeiculos] = useState<Veiculo[]>([]);
   const [vagas, setVagas] = useState<Vaga[]>([]);
   const [registros, setRegistros] = useState<Registro[]>([]);
+  const [placaListenner, setPlacaListenner] = useState<Veiculo | null>(null);
 
   const { isAuthenticated, user, token } = useAuth();
 
@@ -58,7 +61,7 @@ export const DataProvider = ({ children }: AuthProviderProps) => {
       const alunosResponse = await api.get("/alunos");
       setAlunos(alunosResponse.data.filter((aluno: Aluno) => aluno.ativo));
     } catch (e) {
-      console.log(e);
+      console.error(e);
     }
   }, [veiculos]);
 
@@ -69,7 +72,7 @@ export const DataProvider = ({ children }: AuthProviderProps) => {
         docentesResponse.data.filter((docente: Docente) => docente.ativo)
       );
     } catch (e) {
-      console.log(e);
+      console.error(e);
     }
   }, [veiculos]);
 
@@ -92,18 +95,10 @@ export const DataProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const fetchRegistros = async (veiculos: Veiculo[]) => {
+  const fetchRegistros = async () => {
     try {
       const registroResponse = await api.get("/estacionamentos"); // Busca todos os registros na API
-      setRegistros(
-        registroResponse.data.map((registro: Registro) => {
-          const veiculo = veiculos.find(
-            (veiculo: Veiculo) => veiculo.id == registro.veiculoId // Procura em veículos o veiculoId correspondente em registros
-          );
-          if (veiculo) registro.veiculo = veiculo; //Caso encontre o veiculo, insere o valor do veiculo encontrado no registro correspondente
-          return registro;
-        })
-      );
+      setRegistros(registroResponse.data);
     } catch (e) {
       console.log(e);
     }
@@ -116,9 +111,9 @@ export const DataProvider = ({ children }: AuthProviderProps) => {
       try {
         alunosCallback(); // Carrega alunos quando atualizar veículos
         docentesCallback(); // Carrega docente quando atualizar veículos
-        const veiculosResponse = await fecthVeiculos(); // Carrega veículos
+        await fecthVeiculos(); // Carrega veículos
         await fetchVagas(); // Carrega vagas
-        await fetchRegistros(veiculosResponse); // Carrega os registros de estacionamentos
+        await fetchRegistros(); // Carrega os registros de estacionamentos
       } catch (e: unknown) {
         if (e instanceof AxiosError)
           if (e?.response?.status == 403) {
@@ -135,14 +130,22 @@ export const DataProvider = ({ children }: AuthProviderProps) => {
 
     if (isAuthenticated && user && token) {
       fetchData();
-      socket.on('resultado-placa', (data) => {
-      console.log(data)
-    })
+      handleSockets();
     }
-    return () => socket.off('resultado-placa')
+    return () => {
+      socket.off("resultado-placa");
+    };
   }, [token]);
 
-  
+  function handleSockets() {
+    socket.on("resultado-placa", (data) => {
+      setPlacaListenner(data[0]);
+    });
+    socket.on("resultado-novo-estacionamento", (data) => {
+      setRegistros((prev) => [data, ...prev]);
+    });
+  }
+
   // Valores a serem disponibilizados pelo contexto
   const value = {
     loading,
@@ -160,6 +163,8 @@ export const DataProvider = ({ children }: AuthProviderProps) => {
     setRegistros,
     alunosCallback,
     docentesCallback,
+    placaListenner,
+    setPlacaListenner,
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

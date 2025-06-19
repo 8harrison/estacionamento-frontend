@@ -1,8 +1,10 @@
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import styles from "./MainLayout.module.css";
 import { FiMenu, FiX } from "react-icons/fi";
+import ModalComPlaca from "../Modal/ModalComPlaca";
+import { useData } from "../../hooks/useData";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -11,8 +13,16 @@ interface MainLayoutProps {
 
 const MainLayout = ({ children, title }: MainLayoutProps) => {
   const { user, logout } = useAuth();
+  const { placaListenner } = useData();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showModalPlaca, setShowModalPlaca] = useState(false);
+
+  useEffect(() => {
+    if (placaListenner) {
+      setShowModalPlaca(true);
+    }
+  }, [placaListenner]);
 
   const handleLogout = () => {
     logout();
@@ -28,7 +38,7 @@ const MainLayout = ({ children, title }: MainLayoutProps) => {
       <button className={styles.mobileMenuButton} onClick={toggleSidebar}>
         {sidebarOpen ? <FiX size={24} /> : <FiMenu size={24} />}
       </button>
-      <aside className={`${styles.sidebar} ${sidebarOpen ? styles.open : ''}`}>
+      <aside className={`${styles.sidebar} ${sidebarOpen ? styles.open : ""}`}>
         <div className={styles.logo}>
           <span className={styles.logoText}>Estacionamento</span>
         </div>
@@ -133,6 +143,10 @@ const MainLayout = ({ children, title }: MainLayoutProps) => {
 
         <div className={styles.content}>{children}</div>
       </main>
+      <ModalComPlaca
+        isOpen={showModalPlaca}
+        onClose={() => setShowModalPlaca(false)}
+      />
     </div>
   );
 };

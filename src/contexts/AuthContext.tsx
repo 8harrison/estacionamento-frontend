@@ -53,7 +53,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setToken(storedToken);
       setUser(JSON.parse(storedUser));
     }
-    console.log(error);
     setLoading(false);
   }, []);
 
