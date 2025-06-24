@@ -135,7 +135,7 @@ const MainLayout = ({ children, title }: MainLayoutProps) => {
             </NavLink>
           )}
 
-          <a href="#" onClick={handleLogout} className={styles.navItem}>
+          <a href="#" onClick={handleLogout} className={`${styles.navItem} ${styles.navItemLogout}`}>
             Sair
           </a>
         </nav>

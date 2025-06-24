@@ -73,7 +73,7 @@ const Vagas = () => {
 
   const updatedVagas = useMemo(() => {
     return findVeiculos();
-  }, [vagas]);
+  }, [vagas, loading]);
 
   const vagasMemo = useMemo(() => {
     setSetores([]);

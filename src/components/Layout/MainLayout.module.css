@@ -216,3 +216,13 @@
     }
   }
 }
+
+.navItemLogout {
+  color: #f87171; /* Vermelho suave */
+  font-weight: 600;
+}
+
+.navItemLogout:hover {
+  background-color: rgba(248, 113, 113, 0.1); /* vermelho claro */
+  color: #ef4444;
+}
