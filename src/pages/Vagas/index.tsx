@@ -18,7 +18,7 @@ const Vagas = () => {
   const [park, setPark] = useState<string | null>();
   const navigate = useNavigate();
 
-  const { vagas, loading, error, setVagas, registros } = useData();
+  const { vagas, loading, error, setVagas, registros, veiculos } = useData();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,13 +51,33 @@ const Vagas = () => {
       });
     });
     await api.patch("/estacionamentos/saida/" + registroAtivo?.id, {
-      valorPago: 0
+      valorPago: 0,
     });
   };
 
+  const findVeiculos = () => {
+    const registrosAtivos = registros.filter((regi) => !regi["data_saida"]);
+    return vagas.map((vaga) => {
+      registrosAtivos.forEach((regi) => {
+        if (vaga.id == regi.vagaId) {
+          veiculos.forEach((veic) => {
+            if (veic.id == regi.veiculoId) {
+              vaga["veiculo"] = veic;
+            }
+          });
+        }
+      });
+      return vaga;
+    });
+  };
+
+  const updatedVagas = useMemo(() => {
+    return findVeiculos();
+  }, [vagas]);
+
   const vagasMemo = useMemo(() => {
     setSetores([]);
-    return vagas.filter((vaga) => {
+    return updatedVagas.filter((vaga) => {
       // Filtro por termo de busca (número ou setor)
       const matchesSearch =
         searchTerm === "" ||
@@ -235,6 +255,24 @@ const Vagas = () => {
               <div className={styles.vagaTipo}>{getTipoLabel(vaga.tipo)}</div>
               <div className={styles.vagaStatus}>
                 {!vaga.ocupada ? "Livre" : "Ocupada"}
+              </div>
+              <div className={styles.veiculoInfo}>
+                {vaga.ocupada && vaga.veiculo && (
+                  <>
+                    <div>
+                      <strong>Modelo:</strong> {vaga.veiculo.modelo}
+                    </div>
+                    <div>
+                      <strong>Placa:</strong> {vaga.veiculo.placa}
+                    </div>
+                    <div>
+                      <strong>Proprietário:</strong>{" "}
+                      {vaga.veiculo.aluno?.nome ||
+                        vaga.veiculo.docente?.nome ||
+                        "N/A"}
+                    </div>
+                  </>
+                )}
               </div>
               <div className={styles.vagaActions}>
                 <button

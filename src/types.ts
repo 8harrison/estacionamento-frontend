@@ -4,6 +4,7 @@ interface Vaga {
   setor: string;
   tipo: string;
   ocupada: boolean;
+  veiculo?: Veiculo
 }
 
 interface Docente {
