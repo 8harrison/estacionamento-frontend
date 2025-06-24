@@ -1,60 +1,33 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import MainLayout from "../../components/Layout/MainLayout";
-import api from "../../services/api";
 import styles from "./Usuarios.module.css";
-import { useData } from "../../hooks/useData";
-import { AxiosError } from "axios";
+import { useAuth } from "../../hooks/useAuth";
+import type { User } from "../../contexts/AuthContext";
+import InfoList from "../../components/InfoCard/InfoList";
 
-interface Usuario {
-  id: number;
-  nome: string;
-  email: string;
-  role: "administrador" | "porteiro";
-}
+type RoleType = "todos" | "administrador" | "porteiro";
+
+const emojiPermissao = {
+  administrador: "👑", // coroa → autoridade
+  porteiro: "🛡️",      // escudo → segurança
+} as const;
+
 
 const Usuarios = () => {
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filtroRole, setFiltroRole] = useState<
-    "todos" | "administrador" | "porteiro"
-  >("todos");
+  const [filtroRole, setFiltroRole] = useState<RoleType>("todos");
   const navigate = useNavigate();
-  const { error, setError } = useData();
-
-  useEffect(() => {
-    fetchUsuarios();
-  }, []);
-
-  const fetchUsuarios = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get("/auth/usuarios");
-      setUsuarios(response.data);
-      setError("");
-    } catch (err) {
-      if (err instanceof AxiosError) {
-        if (err.response?.status === 403) {
-          setError("Seu Token expirou, realize um novo login");
-        } else {
-          console.error("Erro ao buscar usuários:", err);
-          setError(
-            "Não foi possível carregar a lista de usuários. Tente novamente mais tarde."
-          );
-        }
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { usuarios, loading, error } = useAuth();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
   };
 
-  const handleViewDetails = (id: number) => {
-    navigate(`/usuarios/${id}`);
+  const handleViewDetails = (id: string) => {
+    navigate(`/usuarios/detalhes`, {
+      state: { id },
+    });
   };
 
   const filteredUsuarios = usuarios.filter((usuario) => {
@@ -69,10 +42,6 @@ const Usuarios = () => {
 
     return matchesSearch && matchesRole;
   });
-
-  const getRoleLabel = (role: string) => {
-    return role === "administrador" ? "Administrador" : "Porteiro";
-  };
 
   return (
     <MainLayout title="Gerenciamento de Usuários">
@@ -107,7 +76,9 @@ const Usuarios = () => {
 
         <button
           className={styles.addButton}
-          onClick={() => navigate("/usuarios/novo")}
+          onClick={() =>
+            navigate("/usuarios/detalhes", { state: { id: "novo" } })
+          }
         >
           Adicionar Usuário
         </button>
@@ -122,37 +93,25 @@ const Usuarios = () => {
           <p>Nenhum usuário encontrado.</p>
         </div>
       ) : (
-        <div className={styles.tableContainer}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>Email</th>
-                <th>Perfil</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredUsuarios.map((usuario) => (
-                <tr key={usuario.id}>
-                  <td>{usuario.nome}</td>
-                  <td>{usuario.email}</td>
-                  <td>{getRoleLabel(usuario.role)}</td>
-                  <td>
-                    <div className={styles.actionButtonsContainer}>
-                      <button
-                        className={styles.actionButton}
-                        onClick={() => handleViewDetails(usuario.id)}
-                      >
-                        Detalhes
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <InfoList<User>
+          data={filteredUsuarios}
+          infoCard={{
+            title: "nome",
+            subtitle: (a) => emojiPermissao[a.role as 'administrador' | 'porteiro'],
+            info: [
+              { label: "EMAIL", value: "email" },
+              { label: "PERMISSÃO", value: "role" },
+            ],
+            actions: (docente) => (
+              <button
+                className={styles.actionButton}
+                onClick={() => handleViewDetails(docente.id)}
+              >
+                Detalhes
+              </button>
+            ),
+          }}
+        />
       )}
     </MainLayout>
   );

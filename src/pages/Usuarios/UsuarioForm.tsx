@@ -1,35 +1,42 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import MainLayout from '../../components/Layout/MainLayout';
-import Modal from '../../components/Modal/Modal';
-import api from '../../services/api';
-import styles from './Usuarios.module.css';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import MainLayout from "../../components/Layout/MainLayout";
+import Modal from "../../components/Modal/Modal";
+import api from "../../services/api";
+import styles from "./UsuarioForm.module.css";
+import { useAuth } from "../../hooks/useAuth";
+import { AxiosError } from "axios";
+import type { User } from "../../contexts/AuthContext";
+import {useLocation} from 'react-router-dom'
 
 interface FormData {
   nome: string;
   email: string;
   senha?: string;
-  confirmarSenha: string;
-  role: 'administrador' | 'porteiro';
+  confirmarSenha?: string;
+  role: "administrador" | "porteiro" | "master";
 }
 
 const UsuarioForm = () => {
-  const { id } = useParams();
+  const location = useLocation()
   const navigate = useNavigate();
-  const isEditing = !!id;
-  
+  const { id } = location.state;
+  const isEditing = id !== "novo";
+  const { usuarios, user } = useAuth();
+
   const [formData, setFormData] = useState<FormData>({
-    nome: '',
-    email: '',
-    senha: '',
-    confirmarSenha: '',
-    role: 'porteiro'
+    nome: "",
+    email: "",
+    senha: "",
+    confirmarSenha: "",
+    role: "porteiro",
   });
-  
+
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [usuario, setUsuario] = useState<User>();
 
   useEffect(() => {
     if (isEditing) {
@@ -38,113 +45,117 @@ const UsuarioForm = () => {
   }, [id]);
 
   const fetchUsuarioData = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get(`/usuarios/${id}`);
-      const usuario = response.data;
-      
-      setFormData({
-        nome: usuario.nome || '',
-        email: usuario.email || '',
-        senha: '',
-        confirmarSenha: '',
-        role: usuario.role || 'porteiro'
-      });
-      
-      setError('');
-    } catch (err) {
-      console.error('Erro ao buscar dados do usuário:', err);
-      setError('Não foi possível carregar os dados do usuário. Tente novamente mais tarde.');
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    const usuario = usuarios.find((usuario) => usuario.id == id);
+    setUsuario(usuario);
+
+    setFormData({
+      nome: usuario?.nome || "",
+      email: usuario?.email || "",
+      senha: "",
+      confirmarSenha: "",
+      role: usuario?.role || "porteiro",
+    });
+
+    setError("");
+    setLoading(false);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const validateForm = () => {
     if (!formData.nome.trim()) {
-      setError('O nome é obrigatório.');
+      setError("O nome é obrigatório.");
       return false;
     }
-    
+
     if (!formData.email.trim()) {
-      setError('O email é obrigatório.');
+      setError("O email é obrigatório.");
       return false;
     }
-    
+
     // Validação básica de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      setError('Por favor, insira um email válido.');
+      setError("Por favor, insira um email válido.");
       return false;
     }
-    
+
     // Validação de senha apenas para novos usuários ou quando a senha for preenchida
     if (!isEditing || formData.senha) {
       if (!isEditing && !formData.senha) {
-        setError('A senha é obrigatória para novos usuários.');
+        setError("A senha é obrigatória para novos usuários.");
         return false;
       }
-      
-      if(formData.senha)
-      if (formData.senha.length < 6) {
-        setError('A senha deve ter pelo menos 6 caracteres.');
-        return false;
-      }
-      
+
+      if (formData.senha)
+        if (formData.senha.length < 6) {
+          setError("A senha deve ter pelo menos 6 caracteres.");
+          return false;
+        }
+
       if (formData.senha !== formData.confirmarSenha) {
-        setError('As senhas não coincidem.');
+        setError("As senhas não coincidem.");
         return false;
       }
     }
-    
+
     return true;
+  };
+
+  const updateUser = async () => {
+    if (usuario?.role === "porteiro") {
+      await api.put(`/auth/usuarios/porteiros/${id}`, formData);
+    } else if (usuario?.role === "administrador") {
+      await api.put(`/auth/usuarios/administradores/${id}`, formData);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     try {
       setLoading(true);
-      setError('');
-      
-      // Remover confirmarSenha do payload
-      const { confirmarSenha, ...payload } = formData;
-      
-      // Se estiver editando e a senha estiver vazia, remover do payload
-      if (isEditing && !payload.senha) {
-        delete payload.senha;
+      setError("");
+
+      delete formData.confirmarSenha;
+
+      if (isEditing && !formData.senha) {
+        delete formData.senha;
       }
-      
+
       if (isEditing) {
-        await api.put(`/usuarios/${id}`, payload);
+        await updateUser();
       } else {
-        await api.post('/usuarios', payload);
+        await api.post("/auth/register", formData);
       }
-      
+
       setSubmitSuccess(true);
       setTimeout(() => {
-        navigate('/usuarios');
+        navigate("/usuarios");
       }, 1500);
-      
-    } catch (err: any) {
-      console.error('Erro ao salvar usuário:', err);
-      if (err.response && err.response.data && err.response.data.message) {
-        setError(err.response.data.message);
-      } else {
-        setError('Ocorreu um erro ao salvar os dados. Tente novamente mais tarde.');
-      }
+    } catch (err) {
+      console.error("Erro ao salvar usuário:", err);
+      if (err instanceof AxiosError)
+        if (err.response && err.response.data && err.response.data.message) {
+          setError(err.response.data.message);
+        } else {
+          setError(
+            "Ocorreu um erro ao salvar os dados. Tente novamente mais tarde."
+          );
+        }
     } finally {
       setLoading(false);
     }
@@ -155,14 +166,17 @@ const UsuarioForm = () => {
       setLoading(true);
       await api.delete(`/usuarios/${id}`);
       setShowConfirmModal(false);
-      navigate('/usuarios');
-    } catch (err: any) {
-      console.error('Erro ao excluir usuário:', err);
-      if (err.response && err.response.data && err.response.data.message) {
-        setError(err.response.data.message);
-      } else {
-        setError('Não foi possível excluir o usuário. Tente novamente mais tarde.');
-      }
+      navigate("/usuarios");
+    } catch (err) {
+      console.error("Erro ao excluir usuário:", err);
+      if (err instanceof AxiosError)
+        if (err.response && err.response.data && err.response.data.message) {
+          setError(err.response.data.message);
+        } else {
+          setError(
+            "Não foi possível excluir o usuário. Tente novamente mais tarde."
+          );
+        }
       setShowConfirmModal(false);
     } finally {
       setLoading(false);
@@ -171,26 +185,29 @@ const UsuarioForm = () => {
 
   if (loading && isEditing) {
     return (
-      <MainLayout title={isEditing ? 'Editar Usuário' : 'Novo Usuário'}>
+      <MainLayout title={isEditing ? "Editar Usuário" : "Novo Usuário"}>
         <div className={styles.loading}>Carregando dados do usuário...</div>
       </MainLayout>
     );
   }
 
   return (
-    <MainLayout title={isEditing ? 'Editar Usuário' : 'Novo Usuário'}>
+    <MainLayout title={isEditing ? "Editar Usuário" : "Novo Usuário"}>
       {submitSuccess ? (
         <div className={styles.successMessage}>
-          Usuário {isEditing ? 'atualizado' : 'cadastrado'} com sucesso! Redirecionando...
+          Usuário {isEditing ? "atualizado" : "cadastrado"} com sucesso!
+          Redirecionando...
         </div>
       ) : (
         <>
           {error && <div className={styles.error}>{error}</div>}
-          
+
           <div className={styles.formContainer}>
             <form onSubmit={handleSubmit} className={styles.form}>
               <div className={styles.formGroup}>
-                <label htmlFor="nome" className={styles.label}>Nome</label>
+                <label htmlFor="nome" className={styles.label}>
+                  Nome
+                </label>
                 <input
                   type="text"
                   id="nome"
@@ -202,9 +219,11 @@ const UsuarioForm = () => {
                   disabled={loading}
                 />
               </div>
-              
+
               <div className={styles.formGroup}>
-                <label htmlFor="email" className={styles.label}>Email</label>
+                <label htmlFor="email" className={styles.label}>
+                  Email
+                </label>
                 <input
                   type="email"
                   id="email"
@@ -216,10 +235,12 @@ const UsuarioForm = () => {
                   disabled={loading}
                 />
               </div>
-              
+
               <div className={styles.formGroup}>
                 <label htmlFor="senha" className={styles.label}>
-                  {isEditing ? 'Nova Senha (deixe em branco para manter a atual)' : 'Senha'}
+                  {isEditing
+                    ? "Nova Senha (deixe em branco para manter a atual)"
+                    : "Senha"}
                 </label>
                 <input
                   type="password"
@@ -228,13 +249,15 @@ const UsuarioForm = () => {
                   value={formData.senha}
                   onChange={handleChange}
                   className={styles.input}
-                  placeholder={isEditing ? 'Nova senha (opcional)' : 'Senha'}
+                  placeholder={isEditing ? "Nova senha (opcional)" : "Senha"}
                   disabled={loading}
                 />
               </div>
-              
+
               <div className={styles.formGroup}>
-                <label htmlFor="confirmarSenha" className={styles.label}>Confirmar Senha</label>
+                <label htmlFor="confirmarSenha" className={styles.label}>
+                  Confirmar Senha
+                </label>
                 <input
                   type="password"
                   id="confirmarSenha"
@@ -246,9 +269,11 @@ const UsuarioForm = () => {
                   disabled={loading}
                 />
               </div>
-              
+
               <div className={styles.formGroup}>
-                <label htmlFor="role" className={styles.label}>Perfil</label>
+                <label htmlFor="role" className={styles.label}>
+                  Perfil
+                </label>
                 <select
                   id="role"
                   name="role"
@@ -257,22 +282,25 @@ const UsuarioForm = () => {
                   className={styles.select}
                   disabled={loading}
                 >
-                  <option value="administrador">Administrador</option>
+                  {user?.role === "master" && (
+                    <option value="administrador">Administrador</option>
+                  )}
+
                   <option value="porteiro">Porteiro</option>
                 </select>
               </div>
-              
+
               <div className={styles.formActions}>
                 <button
                   type="button"
-                  onClick={() => navigate('/usuarios')}
+                  onClick={() => navigate("/usuarios")}
                   className={styles.cancelButton}
                   disabled={loading}
                 >
                   Cancelar
                 </button>
-                
-                {isEditing && (
+
+                {isEditing && user?.role === "master" && (
                   <button
                     type="button"
                     onClick={() => setShowConfirmModal(true)}
@@ -282,18 +310,22 @@ const UsuarioForm = () => {
                     Excluir
                   </button>
                 )}
-                
+
                 <button
                   type="submit"
                   className={styles.submitButton}
                   disabled={loading}
                 >
-                  {loading ? 'Salvando...' : isEditing ? 'Atualizar' : 'Cadastrar'}
+                  {loading
+                    ? "Salvando..."
+                    : isEditing
+                    ? "Atualizar"
+                    : "Cadastrar"}
                 </button>
               </div>
             </form>
           </div>
-          
+
           <Modal
             isOpen={showConfirmModal}
             onClose={() => setShowConfirmModal(false)}
@@ -312,12 +344,15 @@ const UsuarioForm = () => {
                   className={styles.deleteButton}
                   disabled={loading}
                 >
-                  {loading ? 'Excluindo...' : 'Confirmar Exclusão'}
+                  {loading ? "Excluindo..." : "Confirmar Exclusão"}
                 </button>
               </>
             }
           >
-            <p>Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.</p>
+            <p>
+              Tem certeza que deseja excluir este usuário? Esta ação não pode
+              ser desfeita.
+            </p>
           </Modal>
         </>
       )}

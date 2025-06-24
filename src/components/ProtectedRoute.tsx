@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 
 interface ProtectedRouteProps {
   children: ReactNode;
-  allowedRoles?: ('administrador' | 'porteiro')[];
+  allowedRoles?: ('administrador' | 'porteiro' | 'master')[];
 }
 
 // Componente para proteger rotas que exigem autenticação

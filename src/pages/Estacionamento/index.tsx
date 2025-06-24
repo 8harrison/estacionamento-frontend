@@ -4,6 +4,9 @@ import MainLayout from "../../components/Layout/MainLayout";
 import styles from "./Estacionamento.module.css";
 import { useData } from "../../hooks/useData";
 import type { Registro } from "../../types";
+import InfoList from "../../components/InfoCard/InfoList";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 const Estacionamento = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -12,6 +15,34 @@ const Estacionamento = () => {
   >("todos");
   const navigate = useNavigate();
   const { registros, error, loading } = useData();
+
+  const exportToExcel = () => {
+    // Mapeia os registros para um array plano
+    const dataToExport = registroMemo.map((r) => ({
+      Placa: r.veiculo.placa,
+      Modelo: r.veiculo.modelo,
+      Cor: r.veiculo.cor,
+      Proprietário: r.veiculo.aluno?.nome || r.veiculo.docente?.nome || "N/A",
+      Vaga: `${r.vaga.numero} - ${r.vaga.setor || ''}`,
+      Entrada: formatarData(r["data_entrada"]),
+      Saída: r["data_saida"] ? formatarData(r["data_saida"]) : "Em andamento",
+    }));
+
+    // Cria a planilha
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Registros");
+
+    // Gera o arquivo
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+
+    // Salva o arquivo
+    const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(blob, `registros-estacionamento.xlsx`);
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,7 +94,6 @@ const Estacionamento = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className={styles.searchInput}
           />
-
           <select
             value={filtroStatus}
             onChange={(e) =>
@@ -77,11 +107,11 @@ const Estacionamento = () => {
             <option value="ativos">Veículos estacionados</option>
             <option value="finalizados">Registros finalizados</option>
           </select>
-
-          <button type="submit" className={styles.searchButton}>
-            Filtrar
-          </button>
+          <button onClick={exportToExcel} className={styles.exportButton}>
+          Baixar Excel
+        </button>
         </form>
+        
       </div>
 
       {loading ? (
@@ -93,57 +123,40 @@ const Estacionamento = () => {
           <p>Nenhum registro encontrado.</p>
         </div>
       ) : (
-        <div className={styles.tableContainer}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Placa</th>
-                <th>Veículo</th>
-                <th>Proprietário</th>
-                <th>Vaga</th>
-                <th>Entrada</th>
-                <th>Saída</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {registroMemo.length > 0 &&
-                registroMemo.map((registro) => (
-                  <tr key={registro.id}>
-                    <td>{registro.veiculo.placa || ""}</td>
-                    <td>
-                      {registro.veiculo.modelo || ""}{" "}
-                      {registro.veiculo.cor || ""}
-                    </td>
-                    <td>
-                      {registro.veiculo.aluno?.nome ||
-                        registro.veiculo.docente?.nome ||
-                        ""}
-                    </td>
-                    <td>
-                      {registro.vaga.numero || ""} {registro.vaga.setor || ""}
-                    </td>
-                    <td>{formatarData(registro["data_entrada"])}</td>
-                    <td>
-                      {registro["data_saida"]
-                        ? formatarData(registro["data_saida"])
-                        : "-"}
-                    </td>
-                    <td>
-                      <div className={styles.actionButtonsContainer}>
-                        <button
-                          className={styles.actionButton}
-                          onClick={() => handleViewDetails(registro.id)}
-                        >
-                          Detalhes
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </div>
+        <InfoList<Registro>
+          data={registroMemo}
+          infoCard={{
+            title: (a) => a.veiculo.modelo,
+            subtitle: (a) => a.veiculo.placa,
+            info: [
+              { label: "VAGA", value: (a) => a.vaga.numero },
+              {
+                label: "PROPRIETÁRIO",
+                value: (a) =>
+                  a.veiculo.aluno?.nome || a.veiculo.docente?.nome || "N/A",
+              },
+              {
+                label: "ENTRADA",
+                value: (a) => formatarData(a["data_entrada"]),
+              },
+              {
+                label: "SAÍDA",
+                value: (a) =>
+                  a["data_saida"]
+                    ? formatarData(a["data_saida"])
+                    : "Em andamento",
+              },
+            ],
+            actions: (registro) => (
+              <button
+                className={styles.actionButton}
+                onClick={() => handleViewDetails(registro.id)}
+              >
+                Detalhes
+              </button>
+            ),
+          }}
+        />
       )}
     </MainLayout>
   );

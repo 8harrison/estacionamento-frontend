@@ -20,6 +20,7 @@ import DocenteForm from "./pages/Docentes/DocenteForm";
 import VagaForm from "./pages/Vagas/VagaForm";
 import { DataProvider } from "./contexts/DataContext";
 import RegistroInformacao from "./pages/Estacionamento/RegistroEntradaForm";
+import UsuarioForm from "./pages/Usuarios/UsuarioForm";
 
 function App() {
   return (
@@ -137,8 +138,17 @@ function App() {
             <Route
               path="/usuarios/*"
               element={
-                <ProtectedRoute allowedRoles={["administrador"]}>
+                <ProtectedRoute allowedRoles={["administrador", 'master']}>
                   <Usuarios />
+                </ProtectedRoute>
+              }
+            />
+
+             <Route
+              path="/usuarios/detalhes"
+              element={
+                <ProtectedRoute allowedRoles={["administrador", 'master']}>
+                  <UsuarioForm />
                 </ProtectedRoute>
               }
             />

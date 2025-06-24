@@ -5,6 +5,7 @@ import styles from "./MainLayout.module.css";
 import { FiMenu, FiX } from "react-icons/fi";
 import ModalComPlaca from "../Modal/ModalComPlaca";
 import { useData } from "../../hooks/useData";
+import ModalPlacaNaoEncontrada from "../Modal/ModalPlacaNaoEncontrada";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -13,16 +14,20 @@ interface MainLayoutProps {
 
 const MainLayout = ({ children, title }: MainLayoutProps) => {
   const { user, logout } = useAuth();
-  const { placaListenner } = useData();
+  const { placaListenner, placaNEncontrada } = useData();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showModalPlaca, setShowModalPlaca] = useState(false);
+  const [showModalPlacaNaoEncontrada, setShowModalPlacaNaoEncontrada] = useState(false)
 
   useEffect(() => {
     if (placaListenner) {
       setShowModalPlaca(true);
     }
-  }, [placaListenner]);
+    if(placaNEncontrada){
+      setShowModalPlacaNaoEncontrada(true)
+    }
+  }, [placaListenner, placaNEncontrada]);
 
   const handleLogout = () => {
     logout();
@@ -46,7 +51,7 @@ const MainLayout = ({ children, title }: MainLayoutProps) => {
         <div className={styles.userInfo}>
           <div className={styles.userName}>{user?.nome || "Usuário"}</div>
           <div className={styles.userRole}>
-            {user?.role === "administrador" ? "Administrador" : "Porteiro"}
+            {user?.role === "administrador" ? "Administrador" : user?.role === 'master' ? 'Master' : "Porteiro"}
           </div>
         </div>
 
@@ -117,7 +122,7 @@ const MainLayout = ({ children, title }: MainLayoutProps) => {
             Registros
           </NavLink>
 
-          {user?.role === "administrador" && (
+          {(user?.role === "administrador" || user?.role === 'master') && (
             <NavLink
               to="/usuarios"
               className={({ isActive }) =>
@@ -146,6 +151,12 @@ const MainLayout = ({ children, title }: MainLayoutProps) => {
       <ModalComPlaca
         isOpen={showModalPlaca}
         onClose={() => setShowModalPlaca(false)}
+      />
+      <ModalPlacaNaoEncontrada 
+        isOpen={showModalPlacaNaoEncontrada}
+        onClose={() => setShowModalPlacaNaoEncontrada(false)}
+        placa={placaNEncontrada && placaNEncontrada!.placa}
+        mensagemErro={placaNEncontrada?.message}
       />
     </div>
   );

@@ -4,6 +4,8 @@ import MainLayout from "../../components/Layout/MainLayout";
 import styles from "./Veiculos.module.css";
 import { useData } from "../../hooks/useData";
 import type { Veiculo } from "../../types";
+import SearchActions from "../../components/SearchActions/SearchActions";
+import InfoList from "../../components/InfoCard/InfoList";
 
 const Veiculos = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -26,28 +28,14 @@ const Veiculos = () => {
 
   return (
     <MainLayout title="Gerenciamento de Veículos">
-      <div className={styles.actionsContainer}>
-        <form className={styles.searchForm}>
-          <input
-            type="text"
-            placeholder="Buscar por placa ou modelo..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={styles.searchInput}
-          />
-          <button type="submit" className={styles.searchButton}>
-            Buscar
-          </button>
-        </form>
-
-        <button
-          className={styles.addButton}
-          onClick={() => navigate("/veiculos/novo")}
-        >
-          Adicionar Veículo
-        </button>
-      </div>
-
+      <SearchActions
+        searchPlaceholder="Buscar por placa ou modelo..."
+        onAdd={() => navigate("/veiculos/novo")}
+        addButtonLabel="Adicionar Veículo"
+        onSearchTermChange={(e) => setSearchTerm(e)}
+        searchTerm={searchTerm}
+        showSearchButton={false}
+      />
       {loading ? (
         <div className={styles.loading}>Carregando veículos...</div>
       ) : error ? (
@@ -57,41 +45,29 @@ const Veiculos = () => {
           <p>Nenhum veículo encontrado.</p>
         </div>
       ) : (
-        <div className={styles.tableContainer}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Placa</th>
-                <th>Modelo</th>
-                <th>Cor</th>
-                <th>Proprietário</th>
-                <th>Tipo</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {veiculoMemo.map((veiculo) => (
-                <tr key={veiculo.id}>
-                  <td>{veiculo.placa}</td>
-                  <td>{veiculo.modelo}</td>
-                  <td>{veiculo.cor}</td>
-                  <td>
-                    {veiculo.aluno?.nome || veiculo.docente?.nome || "N/A"}
-                  </td>
-                  <td>{veiculo.aluno ? "Aluno" : "Docente"}</td>
-                  <td>
-                    <button
-                      className={styles.actionButton}
-                      onClick={() => handleViewDetails(veiculo.id)}
-                    >
-                      Detalhes
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <InfoList<Veiculo>
+          data={veiculoMemo}
+          infoCard={{
+            title: "modelo",
+            subtitle: "placa",
+            info: [
+              {
+                label: "Proprietário",
+                value: (a) => a.aluno?.nome || a.docente?.nome || "N/A",
+              },
+              { label: "Cor", value: "cor" },
+              { label: "Tipo", value: (a) => (a.aluno ? "Aluno" : "Docente") },
+            ],
+            actions: (docente) => (
+              <button
+                className={styles.actionButton}
+                onClick={() => handleViewDetails(docente.id)}
+              >
+                Detalhes
+              </button>
+            ),
+          }}
+        />
       )}
     </MainLayout>
   );

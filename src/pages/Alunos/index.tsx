@@ -4,6 +4,8 @@ import MainLayout from "../../components/Layout/MainLayout";
 import styles from "./Alunos.module.css";
 import { useData } from "../../hooks/useData";
 import type { Aluno } from "../../types";
+import SearchActions from "../../components/SearchActions/SearchActions";
+import InfoList from "../../components/InfoCard/InfoList";
 
 const Alunos = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -42,28 +44,14 @@ const Alunos = () => {
 
   return (
     <MainLayout title="Gerenciamento de Alunos">
-      <div className={styles.actionsContainer}>
-        <form onSubmit={handleSearch} className={styles.searchForm}>
-          <input
-            type="text"
-            placeholder="Buscar por nome ou matrícula..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={styles.searchInput}
-          />
-          <button type="submit" className={styles.searchButton}>
-            Buscar
-          </button>
-        </form>
-
-        <button
-          className={styles.addButton}
-          onClick={() => navigate("/alunos/novo")}
-        >
-          Adicionar Aluno
-        </button>
-      </div>
-
+      <SearchActions
+        searchPlaceholder="Buscar por nome ou matrícula..."
+        onAdd={() => navigate("/alunos/novo")}
+        addButtonLabel="Adicionar Aluno"
+        onSearch={handleSearch}
+        onSearchTermChange={(e) => setSearchTerm(e)}
+        searchTerm={searchTerm}
+      />
       {loading ? (
         <div className={styles.loading}>Carregando alunos...</div>
       ) : error ? (
@@ -73,37 +61,25 @@ const Alunos = () => {
           <p>Nenhum aluno encontrado.</p>
         </div>
       ) : (
-        <div className={styles.tableContainer}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>Matrícula</th>
-                <th>Turno</th>
-                <th>Veículos</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtredAlunos.map((aluno) => (
-                <tr key={aluno.id}>
-                  <td>{aluno.nome}</td>
-                  <td>{aluno.matricula}</td>
-                  <td>{aluno.turno}</td>
-                  <td>{aluno.veiculos?.length || 0}</td>
-                  <td>
-                    <button
-                      className={styles.actionButton}
-                      onClick={() => handleViewDetails(aluno.id)}
-                    >
-                      Detalhes
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <InfoList<Aluno>
+          data={filtredAlunos}
+          infoCard={{
+            title: "nome",
+            subtitle: "matricula",
+            info: [
+              { label: "Turno", value: "turno" },
+              { label: "Veículos", value: (a) => a.veiculos.length },
+            ],
+            actions: (aluno) => (
+              <button
+                onClick={() => handleViewDetails(aluno.id)}
+                className={styles.actionButton}
+              >
+                Detalhes
+              </button>
+            ),
+          }}
+        />
       )}
     </MainLayout>
   );

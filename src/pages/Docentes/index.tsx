@@ -4,6 +4,8 @@ import MainLayout from "../../components/Layout/MainLayout";
 import styles from "./Docentes.module.css";
 import { useData } from "../../hooks/useData";
 import type { Docente } from "../../types";
+import SearchActions from "../../components/SearchActions/SearchActions";
+import InfoList from "../../components/InfoCard/InfoList";
 
 const Docentes = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -42,27 +44,14 @@ const Docentes = () => {
 
   return (
     <MainLayout title="Gerenciamento de Docentes">
-      <div className={styles.actionsContainer}>
-        <form onSubmit={handleSearch} className={styles.searchForm}>
-          <input
-            type="text"
-            placeholder="Buscar por nome, matrícula ou departamento..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={styles.searchInput}
-          />
-          <button type="submit" className={styles.searchButton}>
-            Buscar
-          </button>
-        </form>
-
-        <button
-          className={styles.addButton}
-          onClick={() => navigate("/docentes/novo")}
-        >
-          Adicionar Docente
-        </button>
-      </div>
+      <SearchActions
+        searchPlaceholder="Buscar por nome, matrícula ou departamento..."
+        onAdd={() => navigate("/docentes/novo")}
+        addButtonLabel="Adicionar Docente"
+        onSearch={handleSearch}
+        onSearchTermChange={(e) => setSearchTerm(e)}
+        searchTerm={searchTerm}
+      />
 
       {loading ? (
         <div className={styles.loading}>Carregando docentes...</div>
@@ -73,37 +62,25 @@ const Docentes = () => {
           <p>Nenhum docente encontrado.</p>
         </div>
       ) : (
-        <div className={styles.tableContainer}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>Matrícula</th>
-                <th>Departamento</th>
-                <th>Veículos</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredDocentes.map((docente) => (
-                <tr key={docente.id}>
-                  <td>{docente.nome}</td>
-                  <td>{docente.matricula}</td>
-                  <td>{docente.departamento}</td>
-                  <td>{docente.veiculos?.length || 0}</td>
-                  <td>
-                    <button
-                      className={styles.actionButton}
-                      onClick={() => handleViewDetails(docente.id)}
-                    >
-                      Detalhes
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <InfoList<Docente>
+          data={filteredDocentes}
+          infoCard={{
+            title: "nome",
+            subtitle: "matricula",
+            info: [
+              { label: "Departamento", value: "departamento" },
+              { label: "Veículos", value: (a) => a.veiculos.length },
+            ],
+            actions: (docente) => (
+              <button
+                className={styles.actionButton}
+                onClick={() => handleViewDetails(docente.id)}
+              >
+                Detalhes
+              </button>
+            ),
+          }}
+        />
       )}
     </MainLayout>
   );

@@ -14,6 +14,10 @@ import { AxiosError } from "axios";
 import { io } from "socket.io-client";
 
 const socket = io(apiUtilizada);
+
+interface ErrorPlaca {
+message: string, placa: string
+}
 interface DataContextType {
   docentes: Docente[];
   setDocentes: Dispatch<SetStateAction<Docente[]>>;
@@ -32,6 +36,8 @@ interface DataContextType {
   setPlacaListenner: Dispatch<SetStateAction<Veiculo | null>>;
   alunosCallback: () => void;
   docentesCallback: () => void;
+  placaNEncontrada: ErrorPlaca | undefined
+  setPlacaNEncontrada: Dispatch<SetStateAction<ErrorPlaca | undefined>>
 }
 
 interface AuthProviderProps {
@@ -53,6 +59,7 @@ export const DataProvider = ({ children }: AuthProviderProps) => {
   const [vagas, setVagas] = useState<Vaga[]>([]);
   const [registros, setRegistros] = useState<Registro[]>([]);
   const [placaListenner, setPlacaListenner] = useState<Veiculo | null>(null);
+  const [placaNEncontrada, setPlacaNEncontrada] = useState<ErrorPlaca | undefined>()
 
   const { isAuthenticated, user, token } = useAuth();
 
@@ -139,7 +146,10 @@ export const DataProvider = ({ children }: AuthProviderProps) => {
 
   function handleSockets() {
     socket.on("resultado-placa", (data) => {
-      setPlacaListenner(data[0]);
+      if(data.error){
+        setPlacaNEncontrada(data.error)
+      } else
+        setPlacaListenner(data[0]);
     });
     socket.on("resultado-novo-estacionamento", (data) => {
       setRegistros((prev) => [data, ...prev]);
@@ -165,6 +175,8 @@ export const DataProvider = ({ children }: AuthProviderProps) => {
     docentesCallback,
     placaListenner,
     setPlacaListenner,
+    placaNEncontrada,
+    setPlacaNEncontrada
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

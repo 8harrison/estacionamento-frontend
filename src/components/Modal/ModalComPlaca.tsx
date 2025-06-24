@@ -14,7 +14,7 @@ function ModalComPlaca(props: ModalProps) {
   const { isOpen, onClose } = props;
   const [busca, setBusca] = useState("");
   const [vagaSelecionada, setVagaSelecionada] = useState<Vaga | null>(null);
-  const { vagas, placaListenner, setPlacaListenner } = useData();
+  const { vagas, placaListenner, setPlacaListenner, setVagas } = useData();
   const vagasFiltradas = vagas.filter(
     (vaga) =>
       !vaga.ocupada && vaga.numero.toLowerCase().includes(busca.toLowerCase())
@@ -22,6 +22,14 @@ function ModalComPlaca(props: ModalProps) {
 
   const onConfirmar = async (vagaSelecionada: Vaga) => {
     // Faz o post para inserir o registro
+    setVagas((prev) => {
+      return prev.map((vaga) => {
+        if (vaga.id == vagaSelecionada.id) {
+          vaga.ocupada = true;
+        }
+        return vaga;
+      });
+    });
     await api.post("/estacionamentos/entrada", {
       veiculoId: placaListenner?.id,
       vagaId: vagaSelecionada.id,
@@ -32,6 +40,7 @@ function ModalComPlaca(props: ModalProps) {
 
   const onCancelar = () => {
     // apenas fecha o modal
+    setPlacaListenner(null);
     onClose();
   };
 
@@ -39,7 +48,7 @@ function ModalComPlaca(props: ModalProps) {
     <Modal
       title="Confirmar veículo"
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={onCancelar}
       footer={<div></div>}
     >
       <div>

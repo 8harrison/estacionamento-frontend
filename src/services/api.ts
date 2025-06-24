@@ -1,10 +1,10 @@
 import axios from 'axios';
 
-// export const apiReal = 'https://projeto-estacionamento-senai.onrender.com'
+export const apiReal = 'https://projeto-estacionamento-senai.onrender.com'
 
 export const apiLocal = 'http://localhost:3000'
 
-export const apiUtilizada = import.meta.env.VITE_API_URL || apiLocal
+export const apiUtilizada = import.meta.env.VITE_API_URL && apiReal
 
 // Criando uma instância do axios com a URL base da API
 const api = axios.create({

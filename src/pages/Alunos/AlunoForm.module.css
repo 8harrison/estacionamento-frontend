@@ -234,3 +234,33 @@ textarea:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
+
+
+.veiculosContainer {
+  margin-top: 2rem;
+  background-color: #f5f5f5;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.subtitulo {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.veiculosLista {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.veiculoItem {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #ccc;
+}
+
+.veiculoItem:last-child {
+  border-bottom: none;
+}

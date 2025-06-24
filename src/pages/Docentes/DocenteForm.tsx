@@ -6,6 +6,7 @@ import api from '../../services/api';
 import styles from './DocenteForm.module.css';
 import { MeuErro } from '../../customError';
 import { useData } from '../../hooks/useData';
+import type { Docente } from '../../types';
 
 interface FormData {
   nome: string;
@@ -33,6 +34,7 @@ const DocenteForm = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const {docentes, setDocentes} = useData()
+  const [docente, setDocente] = useState<Docente>()
 
   useEffect(() => {
     if (isEditing) {
@@ -43,6 +45,7 @@ const DocenteForm = () => {
   const fetchDocenteData = async () => {
       setLoading(true);
       const docente = docentes.find(docente => docente.id == id);
+      setDocente(docente)
       setFormData({
         nome: docente?.nome || '',
         matricula: docente?.matricula || '',
@@ -258,6 +261,20 @@ const DocenteForm = () => {
                 />
               </div>
               
+              {isEditing && docente && docente!.veiculos!.length > 0 && (
+                <div className={styles.veiculosContainer}>
+                  <h3 className={styles.subtitulo}>Veículos Cadastrados</h3>
+                  <ul className={styles.veiculosLista}>
+                    {docente!.veiculos!.map((veiculo) => (
+                      <li key={veiculo.id} className={styles.veiculoItem}>
+                        <strong>Placa:</strong> {veiculo.placa} —{" "}
+                        <strong>Modelo:</strong> {veiculo.modelo}{" "}
+                        {veiculo.cor ? `(${veiculo.cor})` : ""}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <div className={styles.formActions}>
                 <button
                   type="button"

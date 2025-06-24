@@ -65,6 +65,10 @@
   gap: var(--spacing-md);
   flex: 1;
   min-width: min(100%, 400px);
+
+  @media (max-width: 980px) {
+    flex-direction: column;
+  }
 }
 
 .searchInput {
@@ -104,109 +108,7 @@
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
 }
 
-.searchButton {
-  background-color: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: var(--radius-lg);
-  padding: 0 var(--spacing-xl);
-  font-weight: 600;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-md);
-  height: 50px;
-  min-width: 100px;
-}
-
-.searchButton:hover {
-  background-color: var(--color-primary-hover);
-  box-shadow: var(--shadow-sm);
-}
-
-.searchButton:active {
-  background-color: var(--color-primary-active);
-  transform: translateY(1px);
-}
-
-.addButton {
-  background-color: var(--color-secondary);
-  color: white;
-  border: none;
-  border-radius: var(--radius-lg);
-  padding: 0 var(--spacing-xl);
-  font-weight: 600;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-md);
-  height: 40px;
-  min-width: 150px;
-  white-space: nowrap;
-}
-
-.addButton:hover {
-  background-color: var(--color-secondary-hover);
-  box-shadow: var(--shadow-sm);
-}
-
-.addButton:active {
-  background-color: var(--color-secondary-active);
-  transform: translateY(1px);
-}
-
 /* ===== Tabela de Registros ===== */
-.tableContainer {
-  background-color: var(--color-background);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-  animation: fadeIn 0.4s ease-out;
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.95rem;
-}
-
-.table th,
-.table td {
-  padding: var(--spacing-lg) var(--spacing-xl);
-  text-align: left;
-  border-bottom: 1px solid var(--color-border);
-  color: var(--color-text);
-}
-
-.table td {
-  font-size: 0.75rem;
-  align-self: center;
-}
-
-.table th {
-  background-color: var(--color-table-header);
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.85rem;
-  letter-spacing: 0.5px;
-  position: sticky;
-  top: 0;
-}
-
-.table tr:last-child td {
-  border-bottom: none;
-}
-
-.table tr:hover {
-  background-color: rgba(52, 152, 219, 0.05);
-}
 
 /* ===== Botões de Ação ===== */
 .actionButton {
@@ -376,4 +278,21 @@ input:focus-visible,
 select:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
+}
+
+
+.exportButton {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  /* margin-left: 1rem; */
+  transition: background-color 0.2s ease-in-out;
+}
+
+.exportButton:hover {
+  background-color: #1d4ed8;
 }
