@@ -35,7 +35,14 @@ const VeiculoForm = () => {
 
   const [loading, setLoading] = useState(false);
 
-  const { alunos, docentes, setVeiculos, veiculos, alunosCallback, docentesCallback } = useData();
+  const {
+    alunos,
+    docentes,
+    setVeiculos,
+    veiculos,
+    alunosCallback,
+    docentesCallback,
+  } = useData();
 
   useEffect(() => {
     if (isEditing) {
@@ -104,6 +111,16 @@ const VeiculoForm = () => {
       setError("A placa é obrigatória.");
       return false;
     }
+    if (!(formData.placa.trim().length === 7)) {
+      setError("A placa deve ter 7 caracteres.");
+      return false;
+    }
+
+    const regex = /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/i;
+    if (regex.test(formData.placa.trim())) {
+      setError("A placa está em um formato inválido.");
+      return false;
+    }
 
     if (!formData.modelo.trim()) {
       setError("O modelo é obrigatório.");
@@ -114,8 +131,6 @@ const VeiculoForm = () => {
       setError("A cor é obrigatória.");
       return false;
     }
-
-    console.log(formData);
 
     return true;
   };
@@ -135,8 +150,8 @@ const VeiculoForm = () => {
   const createVeiculo = async (payload: Partial<Veiculo>) => {
     const newVeiculo = await api.post("/veiculos", payload);
     setVeiculos((prev) => [...prev, newVeiculo.data]);
-    alunosCallback()
-    docentesCallback()
+    alunosCallback();
+    docentesCallback();
   };
 
   const deleteVeiculo = async () => {
@@ -148,7 +163,7 @@ const VeiculoForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -157,7 +172,8 @@ const VeiculoForm = () => {
       setLoading(true);
       setError("");
 
-      const payload = {...formData};   
+      const payload = { ...formData };
+      payload.placa = payload.placa.toUpperCase()
 
       if (isEditing) {
         await updateVeiculo(payload);
