@@ -1,0 +1,181 @@
+/* ===== Variáveis do Módulo ===== */
+:root {
+  /* Cores do sistema - não usar diretamente, usar as variáveis abaixo */
+  --color-blue-500: #3498db;
+  --color-blue-600: #2980b9;
+  --color-blue-700: #1e6091;
+  --color-green-500: #2ecc71;
+  --color-green-600: #27ae60;
+  --color-green-700: #1f8b4c;
+  --color-red-500: #e74c3c;
+  --color-red-600: #c0392b;
+  --color-gray-100: #f8fafc;
+  --color-gray-200: #e2e8f0;
+  --color-gray-700: #334155;
+  --color-gray-800: #1e293b;
+  --color-gray-900: #0f172a;
+  --color-white: #ffffff;
+  
+  /* Variáveis funcionais - usar estas */
+  --color-primary: var(--color-blue-500);
+  --color-primary-hover: var(--color-blue-600);
+  --color-primary-active: var(--color-blue-700);
+  --color-secondary: var(--color-green-500);
+  --color-secondary-hover: var(--color-green-600);
+  --color-secondary-active: var(--color-green-700);
+  --color-danger: var(--color-red-500);
+  --color-danger-hover: var(--color-red-600);
+  --color-text: var(--color-gray-800);
+  --color-text-light: var(--color-gray-700);
+  --color-background: var(--color-white);
+  --color-border: var(--color-gray-200);
+  --color-table-header: var(--color-gray-100);
+  
+  /* Sombras */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  
+  /* Arredondamento */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  
+  /* Espaçamento */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 0.75rem;
+  --spacing-lg: 1rem;
+  --spacing-xl: 1.5rem;
+  --spacing-2xl: 2rem;
+}
+
+/* ===== Container de Ações ===== */
+
+/* ===== Tabela de Veículos ===== */
+
+/* ===== Botão de Ação ===== */
+.actionButton {
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  min-width: 100px;
+}
+
+.actionButton:hover {
+  background-color: var(--color-primary-hover);
+  box-shadow: var(--shadow-sm);
+}
+
+.actionButton:active {
+  background-color: var(--color-primary-active);
+  transform: translateY(1px);
+}
+
+/* ===== Estados de UI ===== */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  color: var(--color-text-light);
+  font-size: 1.1rem;
+  background-color: var(--color-background);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  opacity: 0.8;
+}
+
+.error {
+  background-color: rgba(231, 76, 60, 0.1);
+  color: var(--color-danger);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  margin: var(--spacing-xl) 0;
+  border-left: 4px solid var(--color-danger);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  background-color: var(--color-background);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  color: var(--color-text-light);
+  gap: var(--spacing-lg);
+  padding: var(--spacing-2xl);
+  text-align: center;
+  opacity: 0.8;
+}
+
+.emptyState p {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+/* ===== Responsividade ===== */
+@media (max-width: 768px) {
+  .actionsContainer {
+    flex-direction: column;
+    gap: var(--spacing-lg);
+    align-items: stretch;
+  }
+  
+  .searchForm {
+    min-width: 100%;
+  }
+  
+  .table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  
+  .table th,
+  .table td {
+    padding: var(--spacing-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .table th,
+  .table td {
+    padding: var(--spacing-md);
+    font-size: 0.9rem;
+  }
+  
+  .actionButton {
+    padding: var(--spacing-sm) var(--spacing-md);
+    min-width: 80px;
+  }
+}
+
+/* ===== Animações ===== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== Acessibilidade ===== */
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
