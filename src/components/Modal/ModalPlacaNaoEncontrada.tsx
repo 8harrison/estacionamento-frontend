@@ -43,8 +43,9 @@ function ModalPlacaNaoEncontrada({
           <span className={styles["info-label"]}>Erro:</span> {mensagemErro}
         </div>
         <p style={{ marginTop: "12px", color: "#ef4444", fontWeight: 500 }}>
-          Verifique se a placa está cadastrada corretamente ou cadastre um novo
-          veículo.
+          {mensagemErro === 'Veículo já está no estacionamento' ? 
+          "Verifique se o veículo já se encontra no estacionamento" : 
+          'Verifique se a placa está cadastrada corretamente ou cadastre um novo veículo.'}
         </p>
       </div>
     </Modal>

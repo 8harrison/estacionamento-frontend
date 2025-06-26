@@ -22,20 +22,27 @@ function ModalComPlaca(props: ModalProps) {
 
   const onConfirmar = async (vagaSelecionada: Vaga) => {
     // Faz o post para inserir o registro
-    setVagas((prev) => {
-      return prev.map((vaga) => {
-        if (vaga.id == vagaSelecionada.id) {
-          vaga.ocupada = true;
-        }
-        return vaga;
+    try{
+      await api.post("/estacionamentos/entrada", {
+        veiculoId: placaListenner?.id,
+        vagaId: vagaSelecionada.id,
       });
-    });
-    await api.post("/estacionamentos/entrada", {
-      veiculoId: placaListenner?.id,
-      vagaId: vagaSelecionada.id,
-    });
-    setPlacaListenner(null);
-    onClose();
+      setVagas((prev) => {
+        return prev.map((vaga) => {
+          if (vaga.id == vagaSelecionada.id) {
+            vaga.ocupada = true;
+          }
+          return vaga;
+        });
+      });
+    } catch(e){
+      console.log(e)
+      
+    } finally{
+      setPlacaListenner(null);
+      onClose();
+    }
+    
   };
 
   const onCancelar = () => {

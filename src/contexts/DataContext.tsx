@@ -106,6 +106,7 @@ export const DataProvider = ({ children }: AuthProviderProps) => {
     try {
       const registroResponse = await api.get("/estacionamentos"); // Busca todos os registros na API
       setRegistros(registroResponse.data);
+      return registroResponse.data
     } catch (e) {
       console.log(e);
     }
@@ -120,7 +121,8 @@ export const DataProvider = ({ children }: AuthProviderProps) => {
         docentesCallback(); // Carrega docente quando atualizar veículos
         await fecthVeiculos(); // Carrega veículos
         await fetchVagas(); // Carrega vagas
-        await fetchRegistros(); // Carrega os registros de estacionamentos
+        const registros = await fetchRegistros(); // Carrega os registros de estacionamentos
+        handleSockets(registros);
       } catch (e: unknown) {
         if (e instanceof AxiosError)
           if (e?.response?.status == 403) {
@@ -136,19 +138,26 @@ export const DataProvider = ({ children }: AuthProviderProps) => {
     };
 
     if (isAuthenticated && user && token) {
-      fetchData();
-      handleSockets();
+      fetchData().then();
+      
     }
     return () => {
       socket.off("resultado-placa");
     };
   }, [token]);
 
-  function handleSockets() {
-    socket.on("resultado-placa", (data) => {
+  function handleSockets(registros: Registro[]) {
+    socket.on("resultado-placa", (data: Veiculo[] | any) => {
+      const registrosAtivos = registros.filter(reg => !reg['data_saida'])
+      console.log(registrosAtivos.some(reg => reg.veiculoId == data[0].id))
       if(data.error){
         setPlacaNEncontrada(data.error)
-      } else
+      } 
+      else if (registrosAtivos.some(registro => registro.veiculoId == data[0].id)){
+        console.log(data[0].id)
+        setPlacaNEncontrada({message: 'Veículo já está no estacionamento', placa: data[0].placa})
+      } 
+      else
         setPlacaListenner(data[0]);
     });
     socket.on("resultado-novo-estacionamento", (data) => {

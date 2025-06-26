@@ -67,6 +67,7 @@ const Vagas = () => {
           });
         }
       });
+      vaga.setor = ''
       return vaga;
     });
   };
@@ -77,7 +78,7 @@ const Vagas = () => {
 
   const vagasMemo = useMemo(() => {
     setSetores([]);
-    return updatedVagas.filter((vaga) => {
+    return updatedVagas && updatedVagas.filter((vaga) => {
       // Filtro por termo de busca (número ou setor)
       const matchesSearch =
         searchTerm === "" ||
