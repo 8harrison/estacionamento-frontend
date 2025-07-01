@@ -80,6 +80,12 @@ const VeiculoForm = () => {
       proprietarioTipo: veiculo?.aluno ? "aluno" : "docente",
     });
 
+    setSearchTerm(
+      `${veiculo?.aluno?.nome || veiculo?.docente?.nome} - Matrícula: ${
+        veiculo?.aluno?.matricula || veiculo?.docente?.matricula
+      }`
+    );
+
     setError("");
     setLoading(false);
   };
@@ -173,7 +179,7 @@ const VeiculoForm = () => {
       setError("");
 
       const payload = { ...formData };
-      payload.placa = payload.placa.toUpperCase()
+      payload.placa = payload.placa.toUpperCase();
 
       if (isEditing) {
         await updateVeiculo(payload);
