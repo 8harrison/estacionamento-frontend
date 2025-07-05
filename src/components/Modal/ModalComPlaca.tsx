@@ -14,7 +14,7 @@ function ModalComPlaca(props: ModalProps) {
   const { isOpen, onClose } = props;
   const [busca, setBusca] = useState("");
   const [vagaSelecionada, setVagaSelecionada] = useState<Vaga | null>(null);
-  const { vagas, placaListenner, setPlacaListenner, setVagas } = useData();
+  const { vagas, placaListenner, setPlacaListenner, setVagas, fetchVagas } = useData();
   const vagasFiltradas = vagas.filter(
     (vaga) =>
       !vaga.ocupada && vaga.numero.toLowerCase().includes(busca.toLowerCase())
@@ -35,6 +35,7 @@ function ModalComPlaca(props: ModalProps) {
           return vaga;
         });
       });
+      await fetchVagas()
     } catch(e){
       console.log(e)
       

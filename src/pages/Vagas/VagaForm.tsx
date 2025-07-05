@@ -31,7 +31,7 @@ const VagaForm = () => {
   const [error, setError] = useState("");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  const { vagas, setVagas } = useData();
+  const { vagas, setVagas, fetchVagas } = useData();
 
   useEffect(() => {
     if (isEditing) {
@@ -108,6 +108,7 @@ const VagaForm = () => {
       }
 
       setSubmitSuccess(true);
+      fetchVagas()
       setTimeout(() => {
         navigate("/vagas");
       }, 1500);

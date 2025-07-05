@@ -18,7 +18,7 @@ const Vagas = () => {
   const [park, setPark] = useState<string | null>();
   const navigate = useNavigate();
 
-  const { vagas, loading, error, setVagas, registros, veiculos } = useData();
+  const { vagas, loading, error, setVagas, registros, veiculos, fetchVagas } = useData();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,6 +36,7 @@ const Vagas = () => {
     } else {
       await handleRetirar(vaga);
     }
+    
   };
 
   const handleRetirar = async (vaga: Vaga) => {
@@ -102,7 +103,7 @@ const Vagas = () => {
 
       return matchesSearch && matchesStatus && matchesTipo && matchesSetor;
     });
-  }, [loading, filtroSetor, filtroStatus, filtroTipo, searchTerm]);
+  }, [loading, filtroSetor, filtroStatus, filtroTipo, searchTerm, vagas]);
 
   const getStatusClass = (status: boolean) => {
     return !status ? styles.statusLivre : styles.statusOcupada;
@@ -122,6 +123,7 @@ const Vagas = () => {
       veiculoId: veiculo.id,
       vagaId: park,
     });
+    await fetchVagas()
   };
 
   const getTipoLabel = (tipo: string) => {

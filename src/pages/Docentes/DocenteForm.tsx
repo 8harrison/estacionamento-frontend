@@ -33,7 +33,7 @@ const DocenteForm = () => {
   const [error, setError] = useState('');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  const {docentes, setDocentes} = useData()
+  const {docentes, setDocentes, fetchDocentes} = useData()
   const [docente, setDocente] = useState<Docente>()
 
   useEffect(() => {
@@ -140,6 +140,7 @@ const DocenteForm = () => {
       }
       
       setSubmitSuccess(true);
+      fetchDocentes()
       setTimeout(() => {
         navigate('/docentes');
       }, 1500);

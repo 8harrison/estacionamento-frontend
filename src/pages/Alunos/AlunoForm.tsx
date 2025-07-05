@@ -32,7 +32,7 @@ const AlunoForm = () => {
   const [error, setError] = useState("");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  const { alunos, setAlunos } = useData();
+  const { alunos, setAlunos, fetchAlunos } = useData();
   const [aluno, setAluno] = useState<Aluno>();
 
   useEffect(() => {
@@ -138,6 +138,7 @@ const AlunoForm = () => {
       }
 
       setSubmitSuccess(true);
+      fetchAlunos()
       setTimeout(() => {
         navigate("/alunos");
       }, 1500);

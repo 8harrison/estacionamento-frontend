@@ -1,18 +1,13 @@
 {
   "compilerOptions": {
-    "target": "ES2020", // Mude para uma versão mais recente para aproveitar recursos do JS
-    "lib": ["ESNext", "dom"], // Inclua "dom" se estiver usando APIs de navegador (ex: para express.Request/Response)
-    "module": "ESNext", // Mude para ESNext para gerar módulos ES, compatível com "type": "module" no package.json
-    "moduleResolution": "node", // Use "node" para resolução de módulos
-    "outDir": "./dist", // Diretório de saída dos arquivos compilados
-    "rootDir": "./src", // Diretório raiz dos seus arquivos TypeScript
-    "strict": true, // Mantenha strict para melhor verificação de tipos
-    "esModuleInterop": true, // Essencial para importar módulos CommonJS como ES Modules
-    "skipLibCheck": true, // Opcional, mas útil para pular verificação de tipos de libs de terceiros
+    "target": "ES2022",
+    "module": "CommonJS",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "allowJs": true // Mantenha se você tem arquivos .js no seu src
+    "rootDir": "."
   },
-  "include": ["src/**/*.ts", "src/**/*.js"], // Inclua .js se usar allowJs
-  "exclude": ["node_modules", "dist"] // Exclua node_modules e a pasta de saída
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules"]
 }

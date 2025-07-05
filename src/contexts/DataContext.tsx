@@ -6,6 +6,7 @@ import {
   type Dispatch,
   type SetStateAction,
   useCallback,
+  useMemo,
 } from "react";
 import api, { apiUtilizada } from "../services/api";
 import { useAuth } from "../hooks/useAuth";
@@ -16,7 +17,8 @@ import { io } from "socket.io-client";
 const socket = io(apiUtilizada);
 
 interface ErrorPlaca {
-message: string, placa: string
+  message: string;
+  placa: string;
 }
 interface DataContextType {
   docentes: Docente[];
@@ -36,8 +38,13 @@ interface DataContextType {
   setPlacaListenner: Dispatch<SetStateAction<Veiculo | null>>;
   alunosCallback: () => void;
   docentesCallback: () => void;
-  placaNEncontrada: ErrorPlaca | undefined
-  setPlacaNEncontrada: Dispatch<SetStateAction<ErrorPlaca | undefined>>
+  placaNEncontrada: ErrorPlaca | undefined;
+  setPlacaNEncontrada: Dispatch<SetStateAction<ErrorPlaca | undefined>>;
+  fetchVagas: () => Promise<void>;
+  fecthVeiculos: () => Promise<void>;
+  fetchRegistros: () => Promise<Registro>;
+  fetchAlunos: () => Promise<void>;
+  fetchDocentes: () => Promise<void>;
 }
 
 interface AuthProviderProps {
@@ -59,20 +66,22 @@ export const DataProvider = ({ children }: AuthProviderProps) => {
   const [vagas, setVagas] = useState<Vaga[]>([]);
   const [registros, setRegistros] = useState<Registro[]>([]);
   const [placaListenner, setPlacaListenner] = useState<Veiculo | null>(null);
-  const [placaNEncontrada, setPlacaNEncontrada] = useState<ErrorPlaca | undefined>()
+  const [placaNEncontrada, setPlacaNEncontrada] = useState<
+    ErrorPlaca | undefined
+  >();
 
   const { isAuthenticated, user, token } = useAuth();
 
-  const alunosCallback = useCallback(async () => {
+  const fetchAlunos = async () => {
     try {
       const alunosResponse = await api.get("/alunos");
       setAlunos(alunosResponse.data.filter((aluno: Aluno) => aluno.ativo));
     } catch (e) {
       console.error(e);
     }
-  }, [veiculos]);
+  };
 
-  const docentesCallback = useCallback(async () => {
+  const fetchDocentes = async () => {
     try {
       const docentesResponse = await api.get("/docentes");
       setDocentes(
@@ -81,6 +90,14 @@ export const DataProvider = ({ children }: AuthProviderProps) => {
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const alunosCallback = useCallback(async () => {
+    await fetchAlunos();
+  }, [veiculos]);
+
+  const docentesCallback = useCallback(async () => {
+    await fetchDocentes();
   }, [veiculos]);
 
   const fecthVeiculos = async () => {
@@ -106,11 +123,15 @@ export const DataProvider = ({ children }: AuthProviderProps) => {
     try {
       const registroResponse = await api.get("/estacionamentos"); // Busca todos os registros na API
       setRegistros(registroResponse.data);
-      return registroResponse.data
+      return registroResponse.data;
     } catch (e) {
       console.log(e);
     }
   };
+
+  useMemo(async() => {
+    await fetchRegistros();
+  }, [vagas]);
 
   // Verificar se o usuário já está autenticado ao carregar a aplicação
   useEffect(() => {
@@ -139,7 +160,6 @@ export const DataProvider = ({ children }: AuthProviderProps) => {
 
     if (isAuthenticated && user && token) {
       fetchData().then();
-      
     }
     return () => {
       socket.off("resultado-placa");
@@ -148,17 +168,19 @@ export const DataProvider = ({ children }: AuthProviderProps) => {
 
   function handleSockets(registros: Registro[]) {
     socket.on("resultado-placa", (data: Veiculo[] | any) => {
-      const registrosAtivos = registros.filter(reg => !reg['data_saida'])
-      console.log(registrosAtivos.some(reg => reg.veiculoId == data[0].id))
-      if(data.error){
-        setPlacaNEncontrada(data.error)
-      } 
-      else if (registrosAtivos.some(registro => registro.veiculoId == data[0].id)){
-        console.log(data[0].id)
-        setPlacaNEncontrada({message: 'Veículo já está no estacionamento', placa: data[0].placa})
-      } 
-      else
-        setPlacaListenner(data[0]);
+      const registrosAtivos = registros.filter((reg) => !reg["data_saida"]);
+      console.log(registrosAtivos.some((reg) => reg.veiculoId == data[0].id));
+      if (data.error) {
+        setPlacaNEncontrada(data.error);
+      } else if (
+        registrosAtivos.some((registro) => registro.veiculoId == data[0].id)
+      ) {
+        console.log(data[0].id);
+        setPlacaNEncontrada({
+          message: "Veículo já está no estacionamento",
+          placa: data[0].placa,
+        });
+      } else setPlacaListenner(data[0]);
     });
     socket.on("resultado-novo-estacionamento", (data) => {
       setRegistros((prev) => [data, ...prev]);
@@ -185,7 +207,12 @@ export const DataProvider = ({ children }: AuthProviderProps) => {
     placaListenner,
     setPlacaListenner,
     placaNEncontrada,
-    setPlacaNEncontrada
+    setPlacaNEncontrada,
+    fetchVagas,
+    fecthVeiculos,
+    fetchRegistros,
+    fetchAlunos,
+    fetchDocentes,
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
