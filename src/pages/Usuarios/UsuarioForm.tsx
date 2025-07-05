@@ -132,10 +132,6 @@ const UsuarioForm = () => {
 
       delete formData.confirmarSenha;
 
-      if (isEditing && !formData.senha) {
-        delete formData.senha;
-      }
-
       if (isEditing) {
         await updateUser();
       } else {

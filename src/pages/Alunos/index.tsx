@@ -56,7 +56,7 @@ const Alunos = () => {
         <div className={styles.loading}>Carregando alunos...</div>
       ) : error ? (
         <div className={styles.error}>{error}</div>
-      ) : filtredAlunos.length === 0 ? (
+      ) : filtredAlunos && filtredAlunos.length === 0 ? (
         <div className={styles.emptyState}>
           <p>Nenhum aluno encontrado.</p>
         </div>
@@ -68,7 +68,7 @@ const Alunos = () => {
             subtitle: "matricula",
             info: [
               { label: "Turno", value: "turno" },
-              { label: "Veículos", value: (a) => a.veiculos.length },
+              { label: "Veículos", value: (a) => a.veiculos && a.veiculos.length || 0},
             ],
             actions: (aluno) => (
               <button

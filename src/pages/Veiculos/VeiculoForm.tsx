@@ -122,8 +122,9 @@ const VeiculoForm = () => {
       return false;
     }
 
-    const regex = /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/i;
-    if (regex.test(formData.placa.trim())) {
+    const regex = /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/;
+    
+    if (!regex.test(formData.placa.trim())) {
       setError("A placa está em um formato inválido.");
       return false;
     }
@@ -138,6 +139,10 @@ const VeiculoForm = () => {
       return false;
     }
 
+    if(!searchTerm){
+      setError("É necessário inserir um proprietário.")
+      return false
+    }
     return true;
   };
 
