@@ -8,7 +8,7 @@ export const apiUtilizada = import.meta.env.VITE_API_URL && apiReal
 
 // Criando uma instância do axios com a URL base da API
 const api = axios.create({
-  baseURL: apiUtilizada + '/api',
+  baseURL: '/api',
 });
 
 // Interceptor para adicionar o token de autenticação em todas as requisições

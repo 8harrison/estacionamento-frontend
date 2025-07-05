@@ -21,8 +21,10 @@ import VagaForm from "./pages/Vagas/VagaForm";
 import { DataProvider } from "./contexts/DataContext";
 import RegistroInformacao from "./pages/Estacionamento/RegistroEntradaForm";
 import UsuarioForm from "./pages/Usuarios/UsuarioForm";
+import api from "./services/api";
 
 function App() {
+  api.get('/').then(res => console.log(res))
   return (
     <AuthProvider>
       <DataProvider>
